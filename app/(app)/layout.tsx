@@ -2,6 +2,7 @@ import { type ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/shell/app-shell";
 import { EventsProvider } from "@/lib/itinerary/store";
+import { MemoryProvider } from "@/lib/memory/store";
 import { TripsProvider } from "@/lib/trips/store";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
@@ -34,11 +35,14 @@ export default async function AppLayout({
 
   // TripsProvider sits above AppShell (and its per-route PageTransition) so trip
   // state survives list → detail navigation — required for the shared-element morph.
-  // EventsProvider holds the itinerary store on the same footing.
+  // EventsProvider and MemoryProvider hold the itinerary + scrapbook stores on
+  // the same footing.
   return (
     <TripsProvider>
       <EventsProvider>
-        <AppShell>{children}</AppShell>
+        <MemoryProvider>
+          <AppShell>{children}</AppShell>
+        </MemoryProvider>
       </EventsProvider>
     </TripsProvider>
   );

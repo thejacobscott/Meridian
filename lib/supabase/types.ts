@@ -92,10 +92,11 @@ export type Database = {
           trip_id: string;
           date: string;
           summary_note: string | null;
+          rating: number | null;
           updated_at: string;
         } & Timestamps;
-        Insert: { id?: string; trip_id: string; date: string; summary_note?: string | null };
-        Update: Partial<{ date: string; summary_note: string | null }>;
+        Insert: { id?: string; trip_id: string; date: string; summary_note?: string | null; rating?: number | null };
+        Update: Partial<{ date: string; summary_note: string | null; rating: number | null }>;
         Relationships: [];
       };
       categories: {

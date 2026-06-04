@@ -39,6 +39,7 @@ import {
 } from "@/lib/trips/types";
 import { ItineraryTab } from "@/components/itinerary/itinerary-tab";
 import { BalanceTab } from "@/components/itinerary/balance-tab";
+import { MemoryTab } from "@/components/memory/memory-tab";
 import { CoverImage } from "./cover-image";
 import { StatusPill } from "./status-pill";
 import { TripForm } from "./trip-form";
@@ -104,7 +105,10 @@ function TripDetailView({
   const router = useRouter();
   const reduce = useReducedMotion();
   const headerRef = React.useRef<HTMLDivElement>(null);
-  const [tab, setTab] = React.useState(TABS[0].id);
+  // A trip you've already taken opens to its memories; everything else to the plan.
+  const [tab, setTab] = React.useState(() =>
+    effectiveStatus(trip) === "past" ? "memory" : TABS[0].id,
+  );
   const [editing, setEditing] = React.useState(false);
   const [confirmDelete, setConfirmDelete] = React.useState(false);
 
@@ -262,6 +266,15 @@ function TripDetailView({
               exit={{ opacity: 0, transition: { duration: 0.15 } }}
             >
               <BalanceTab trip={trip} />
+            </motion.div>
+          ) : active.id === "memory" ? (
+            <motion.div
+              key="memory"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, transition: { duration: 0.25 } }}
+              exit={{ opacity: 0, transition: { duration: 0.15 } }}
+            >
+              <MemoryTab trip={trip} />
             </motion.div>
           ) : (
             <motion.section
