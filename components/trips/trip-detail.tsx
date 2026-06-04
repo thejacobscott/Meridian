@@ -38,6 +38,7 @@ import {
   type TripDraft,
 } from "@/lib/trips/types";
 import { ItineraryTab } from "@/components/itinerary/itinerary-tab";
+import { BalanceTab } from "@/components/itinerary/balance-tab";
 import { CoverImage } from "./cover-image";
 import { StatusPill } from "./status-pill";
 import { TripForm } from "./trip-form";
@@ -252,6 +253,15 @@ function TripDetailView({
               exit={{ opacity: 0, transition: { duration: 0.15 } }}
             >
               <ItineraryTab trip={trip} />
+            </motion.div>
+          ) : active.id === "balance" ? (
+            <motion.div
+              key="balance"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, transition: { duration: 0.25 } }}
+              exit={{ opacity: 0, transition: { duration: 0.15 } }}
+            >
+              <BalanceTab trip={trip} />
             </motion.div>
           ) : (
             <motion.section

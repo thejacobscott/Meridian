@@ -27,6 +27,7 @@ export function EventForm({
   event,
   days,
   defaultDate,
+  defaultCategoryId = null,
   tripCurrency,
   accent,
   onSubmit,
@@ -36,6 +37,8 @@ export function EventForm({
   event?: ItineraryEvent;
   days: string[];
   defaultDate: string | null;
+  /** Preselect a category when creating (used by the Balance nudge). */
+  defaultCategoryId?: string | null;
   tripCurrency: string;
   accent: string;
   onSubmit: (draft: EventDraft) => Promise<ItineraryEvent>;
@@ -47,7 +50,7 @@ export function EventForm({
     event ? event.date : defaultDate,
   );
   const [categoryId, setCategoryId] = React.useState<string | null>(
-    event?.category_id ?? null,
+    event?.category_id ?? defaultCategoryId,
   );
   const [start, setStart] = React.useState(event?.start_time ?? "");
   const [end, setEnd] = React.useState(event?.end_time ?? "");

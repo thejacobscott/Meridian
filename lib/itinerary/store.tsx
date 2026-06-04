@@ -15,6 +15,8 @@ interface EventsContextValue {
   ready: boolean;
   /** All of a trip's events (any day), in display order. */
   getEvents: (tripId: string) => ItineraryEvent[];
+  /** Every event across every trip — powers the all-time Balance view. */
+  getAllEvents: () => ItineraryEvent[];
   createEvent: (tripId: string, draft: EventDraft) => Promise<ItineraryEvent>;
   updateEvent: (id: string, draft: EventDraft) => Promise<ItineraryEvent>;
   deleteEvent: (id: string) => Promise<void>;
@@ -121,6 +123,8 @@ function PreviewEventsProvider({ children }: { children: React.ReactNode }) {
       ready,
       getEvents: (tripId) =>
         events.filter((e) => e.trip_id === tripId).sort(byDisplayOrder),
+
+      getAllEvents: () => [...events].sort(byDisplayOrder),
 
       createEvent: async (tripId, draft) => {
         const date = draft.date ?? null;
