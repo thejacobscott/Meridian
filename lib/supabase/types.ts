@@ -52,6 +52,7 @@ export type Database = {
           start_date: string | null;
           end_date: string | null;
           status: TripStatus;
+          status_override: boolean;
           accent_color: string | null;
           cover_photo_url: string | null;
           currency: string;
@@ -66,6 +67,7 @@ export type Database = {
           start_date?: string | null;
           end_date?: string | null;
           status?: TripStatus;
+          status_override?: boolean;
           accent_color?: string | null;
           cover_photo_url?: string | null;
           currency?: string;
@@ -77,6 +79,7 @@ export type Database = {
           start_date: string | null;
           end_date: string | null;
           status: TripStatus;
+          status_override: boolean;
           accent_color: string | null;
           cover_photo_url: string | null;
           currency: string;

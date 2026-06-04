@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/shell/app-shell";
+import { TripsProvider } from "@/lib/trips/store";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -30,5 +31,11 @@ export default async function AppLayout({
     if (!membership) redirect("/welcome");
   }
 
-  return <AppShell>{children}</AppShell>;
+  // TripsProvider sits above AppShell (and its per-route PageTransition) so trip
+  // state survives list → detail navigation — required for the shared-element morph.
+  return (
+    <TripsProvider>
+      <AppShell>{children}</AppShell>
+    </TripsProvider>
+  );
 }
