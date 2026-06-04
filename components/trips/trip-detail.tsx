@@ -37,6 +37,7 @@ import {
   type Trip,
   type TripDraft,
 } from "@/lib/trips/types";
+import { ItineraryTab } from "@/components/itinerary/itinerary-tab";
 import { CoverImage } from "./cover-image";
 import { StatusPill } from "./status-pill";
 import { TripForm } from "./trip-form";
@@ -243,36 +244,47 @@ function TripDetailView({
       {/* Tab panel */}
       <div className="mt-6 min-h-[260px]">
         <AnimatePresence mode="wait">
-          <motion.section
-            key={active.id}
-            variants={staggerContainer}
-            initial="initial"
-            animate="animate"
-            exit={{ opacity: 0, transition: { duration: 0.15 } }}
-            className="rounded-card border border-line bg-surface px-7 py-12 text-center shadow-soft"
-          >
-            <motion.span
-              variants={fadeUp}
-              className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent/10 text-accent-deep"
+          {active.id === "itinerary" ? (
+            <motion.div
+              key="itinerary"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, transition: { duration: 0.25 } }}
+              exit={{ opacity: 0, transition: { duration: 0.15 } }}
             >
-              <active.icon size={24} strokeWidth={1.5} />
-            </motion.span>
-            <motion.h2 variants={fadeUp} className="mt-5 text-xl">
-              {active.label}
-            </motion.h2>
-            <motion.p
-              variants={fadeUp}
-              className="mx-auto mt-2 max-w-sm text-ink-soft text-balance"
+              <ItineraryTab trip={trip} />
+            </motion.div>
+          ) : (
+            <motion.section
+              key={active.id}
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+              exit={{ opacity: 0, transition: { duration: 0.15 } }}
+              className="rounded-card border border-line bg-surface px-7 py-12 text-center shadow-soft"
             >
-              {active.blurb}
-            </motion.p>
-            <motion.p
-              variants={fadeUp}
-              className="mt-5 text-xs uppercase tracking-[0.16em] text-ink-soft/60"
-            >
-              Coming soon
-            </motion.p>
-          </motion.section>
+              <motion.span
+                variants={fadeUp}
+                className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent/10 text-accent-deep"
+              >
+                <active.icon size={24} strokeWidth={1.5} />
+              </motion.span>
+              <motion.h2 variants={fadeUp} className="mt-5 text-xl">
+                {active.label}
+              </motion.h2>
+              <motion.p
+                variants={fadeUp}
+                className="mx-auto mt-2 max-w-sm text-ink-soft text-balance"
+              >
+                {active.blurb}
+              </motion.p>
+              <motion.p
+                variants={fadeUp}
+                className="mt-5 text-xs uppercase tracking-[0.16em] text-ink-soft/60"
+              >
+                Coming soon
+              </motion.p>
+            </motion.section>
+          )}
         </AnimatePresence>
       </div>
 
