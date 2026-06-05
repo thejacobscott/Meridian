@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Hairline } from "@/components/ui/hairline";
 import { buttonVariants } from "@/components/ui/button";
 import { InviteCode } from "@/components/space/invite-code";
+import { SpaceEditor } from "@/components/space/space-editor";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/auth/actions";
@@ -157,26 +158,13 @@ function PreviewProfile() {
         <h1 className="mt-1 text-[2rem] leading-tight tracking-[-0.02em]">
           You &amp; your person
         </h1>
+        <p className="mt-2 max-w-md text-pretty text-sm leading-relaxed text-ink-soft">
+          Set your names, home cities, and time zones — your clocks on the home
+          screen follow along.
+        </p>
       </header>
 
-      <Card className="divide-y divide-line">
-        {[
-          { name: "You", city: "Add your home city", tz: "—" },
-          { name: "Your person", city: "Invite them to set theirs", tz: "—" },
-        ].map((m) => (
-          <div key={m.name} className="flex items-center gap-4 px-5 py-4">
-            <Avatar name={m.name === "You" ? "Y" : null} size={48} />
-            <div className="min-w-0 flex-1">
-              <p className="font-medium text-ink">{m.name}</p>
-              <p className="text-sm text-ink-soft">{m.city}</p>
-            </div>
-            <div className="flex items-center gap-1.5 text-sm tabular-nums text-ink-soft">
-              <Clock size={15} strokeWidth={1.6} />
-              {m.tz}
-            </div>
-          </div>
-        ))}
-      </Card>
+      <SpaceEditor />
 
       <Card className="px-5 py-4">
         <div className="flex items-center gap-4">

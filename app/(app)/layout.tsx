@@ -4,6 +4,8 @@ import { AppShell } from "@/components/shell/app-shell";
 import { EventsProvider } from "@/lib/itinerary/store";
 import { MemoryProvider } from "@/lib/memory/store";
 import { TripsProvider } from "@/lib/trips/store";
+import { SpaceProvider } from "@/lib/space/store";
+import { WishlistProvider } from "@/lib/wishlist/store";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -36,12 +38,17 @@ export default async function AppLayout({
   // TripsProvider sits above AppShell (and its per-route PageTransition) so trip
   // state survives list → detail navigation — required for the shared-element morph.
   // EventsProvider and MemoryProvider hold the itinerary + scrapbook stores on
-  // the same footing.
+  // the same footing. SpaceProvider (the two of you + time zones) and
+  // WishlistProvider (the someday board) join them for the long-distance layer.
   return (
     <TripsProvider>
       <EventsProvider>
         <MemoryProvider>
-          <AppShell>{children}</AppShell>
+          <SpaceProvider>
+            <WishlistProvider>
+              <AppShell>{children}</AppShell>
+            </WishlistProvider>
+          </SpaceProvider>
         </MemoryProvider>
       </EventsProvider>
     </TripsProvider>

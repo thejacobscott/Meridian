@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, Heart, MapPin, Plus, Sparkles } from "lucide-react";
-import { Avatar } from "@/components/ui/avatar";
+import { motion } from "framer-motion";
+import { ArrowRight, MapPin, Plus, Sparkles } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ReunionHero } from "@/components/home/reunion-hero";
+import { DualClocks } from "@/components/home/dual-clocks";
 import { cn } from "@/lib/cn";
 import { fadeUp, staggerContainer } from "@/lib/motion";
 
@@ -22,8 +23,6 @@ function todayLabel() {
 }
 
 export default function HomePage() {
-  const reduce = useReducedMotion();
-
   return (
     <motion.div
       variants={staggerContainer}
@@ -44,49 +43,15 @@ export default function HomePage() {
         </h1>
       </motion.header>
 
-      {/* Reunion hero */}
+      {/* Reunion hero — live countdown to the next time you're together */}
       <motion.section variants={fadeUp}>
-        <Card className="overflow-hidden">
-          <div className="px-6 pt-7 pb-8 sm:px-8">
-            <p className="text-[0.6875rem] font-medium uppercase tracking-[0.18em] text-accent-deep">
-              Next reunion
-            </p>
+        <ReunionHero />
+      </motion.section>
 
-            {/* two-of-us, separated-by-distance motif */}
-            <div className="mt-7 mb-7 flex items-center justify-center">
-              <Avatar size={56} className="bg-clay/15 ring-clay/20" />
-              <div className="relative mx-2 h-px w-[110px]">
-                <div className="absolute inset-0 border-t border-dashed border-line" />
-                <motion.span
-                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-surface p-1.5 ring-1 ring-line"
-                  animate={reduce ? undefined : { y: [0, -3, 0] }}
-                  transition={{ duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <Heart size={14} strokeWidth={1.75} className="text-clay" />
-                </motion.span>
-              </div>
-              <Avatar size={56} className="bg-sage/20 ring-sage/30" />
-            </div>
-
-            <h2 className="text-center text-[1.65rem] leading-tight">
-              No dates on the calendar yet
-            </h2>
-            <p className="mx-auto mt-2 max-w-sm text-center text-ink-soft text-balance">
-              Plan your first trip together and the countdown to being in the
-              same place lands right here.
-            </p>
-
-            <div className="mt-7 flex justify-center">
-              <Link
-                href="/trips"
-                className={buttonVariants({ variant: "primary", size: "lg" })}
-              >
-                Plan your first trip
-                <ArrowRight size={18} strokeWidth={1.75} />
-              </Link>
-            </div>
-          </div>
-        </Card>
+      {/* Right now — the distance, with a face on it */}
+      <motion.section variants={fadeUp} className="space-y-4">
+        <SectionHeading eyebrow="Right now" title="Where you each are" />
+        <DualClocks />
       </motion.section>
 
       {/* Someday peek */}

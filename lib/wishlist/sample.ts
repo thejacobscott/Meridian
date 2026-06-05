@@ -1,0 +1,81 @@
+import type { WishlistItem } from "./types";
+
+/**
+ * Sample someday list for preview mode (no Supabase keys). A mix of vote states
+ * so the board shows every shade out of the box: a couple both dream of, one
+ * each is keen on, and one nobody's hearted yet. Replaced once a space connects.
+ */
+export const SAMPLE_WISHLIST: WishlistItem[] = [
+  {
+    id: "wish-kyoto-blossom",
+    title: "Cherry blossoms in Kyoto",
+    place: "Japan · early April",
+    note: "Time it for the exact week the trees turn.",
+    added_by: "b",
+    votes_a: 1,
+    votes_b: 1,
+    promoted_to_trip_id: null,
+    created_at: "2026-02-10T09:00:00.000Z",
+    updated_at: "2026-02-10T09:00:00.000Z",
+  },
+  {
+    id: "wish-slow-week",
+    title: "A week with nothing planned",
+    place: "somewhere off-season",
+    note: "Just us and slow mornings.",
+    added_by: "a",
+    votes_a: 1,
+    votes_b: 1,
+    promoted_to_trip_id: null,
+    created_at: "2026-03-18T09:00:00.000Z",
+    updated_at: "2026-03-18T09:00:00.000Z",
+  },
+  {
+    id: "wish-rome-pasta",
+    title: "That tiny pasta place again",
+    place: "Trastevere, Rome",
+    note: "The one down the steps with the artichokes.",
+    added_by: "a",
+    votes_a: 1,
+    votes_b: 1,
+    promoted_to_trip_id: null,
+    created_at: "2026-01-22T09:00:00.000Z",
+    updated_at: "2026-01-22T09:00:00.000Z",
+  },
+  {
+    id: "wish-aurora",
+    title: "See the northern lights",
+    place: "Tromsø, Norway",
+    note: null,
+    added_by: "a",
+    votes_a: 1,
+    votes_b: 0,
+    promoted_to_trip_id: null,
+    created_at: "2026-04-02T09:00:00.000Z",
+    updated_at: "2026-04-02T09:00:00.000Z",
+  },
+  {
+    id: "wish-pch",
+    title: "Drive the Pacific Coast Highway",
+    place: "California",
+    note: "Top down, no schedule.",
+    added_by: "b",
+    votes_a: 0,
+    votes_b: 1,
+    promoted_to_trip_id: null,
+    created_at: "2026-03-30T09:00:00.000Z",
+    updated_at: "2026-03-30T09:00:00.000Z",
+  },
+  {
+    id: "wish-alps-train",
+    title: "Take the train through the Alps",
+    place: "Switzerland",
+    note: null,
+    added_by: "b",
+    votes_a: 0,
+    votes_b: 0,
+    promoted_to_trip_id: null,
+    created_at: "2026-04-20T09:00:00.000Z",
+    updated_at: "2026-04-20T09:00:00.000Z",
+  },
+];
