@@ -25,6 +25,8 @@ export type Trip = {
   accent_color: string;
   cover_photo_url: string | null;
   currency: string;
+  /** Optional spending target for the trip, in `currency`. Null = none set. */
+  budget: number | null;
   created_at: string;
 };
 
@@ -35,6 +37,7 @@ export type TripDraft = {
   start_date?: string | null;
   end_date?: string | null;
   currency?: string;
+  budget?: number | null;
   accent_color?: string;
   status?: TripStatus | null;
   cover_photo_url?: string | null;

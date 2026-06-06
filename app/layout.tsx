@@ -39,7 +39,7 @@ export default function RootLayout({
       className={`${fraunces.variable} ${inter.variable} antialiased`}
     >
       <body className="min-h-dvh">
-        <div className="paper-grain" aria-hidden="true" />
+        <div className="paper-grain print:hidden" aria-hidden="true" />
         {children}
       </body>
     </html>

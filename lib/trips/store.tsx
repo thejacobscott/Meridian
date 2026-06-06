@@ -115,6 +115,7 @@ function PreviewTripsProvider({ children }: { children: React.ReactNode }) {
           accent_color: draft.accent_color ?? DEFAULT_ACCENT.color,
           cover_photo_url: draft.cover_photo_url ?? null,
           currency: draft.currency ?? "USD",
+          budget: draft.budget ?? null,
           created_at: new Date().toISOString(),
           ...resolveStatus(start, end, draft.status),
         };
@@ -143,6 +144,7 @@ function PreviewTripsProvider({ children }: { children: React.ReactNode }) {
                   ? draft.cover_photo_url
                   : t.cover_photo_url,
               currency: draft.currency ?? t.currency,
+              budget: draft.budget !== undefined ? draft.budget : t.budget,
               ...resolveStatus(start, end, draft.status, t),
             };
             return updated;

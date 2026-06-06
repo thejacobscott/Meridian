@@ -10,7 +10,7 @@ import { spring } from "@/lib/motion";
 export function BottomNav() {
   const pathname = usePathname();
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-40 md:hidden print:!hidden">
       <div className="mx-auto mb-3 flex w-[min(420px,calc(100%-1.5rem))] items-center justify-around rounded-full border border-line bg-surface/85 p-1.5 shadow-lift backdrop-blur-md">
         {navItems.map((it) => {
           const active = it.match(pathname);

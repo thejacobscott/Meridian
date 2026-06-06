@@ -6,6 +6,7 @@ import { MemoryProvider } from "@/lib/memory/store";
 import { TripsProvider } from "@/lib/trips/store";
 import { SpaceProvider } from "@/lib/space/store";
 import { WishlistProvider } from "@/lib/wishlist/store";
+import { PackingProvider } from "@/lib/packing/store";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -40,13 +41,16 @@ export default async function AppLayout({
   // EventsProvider and MemoryProvider hold the itinerary + scrapbook stores on
   // the same footing. SpaceProvider (the two of you + time zones) and
   // WishlistProvider (the someday board) join them for the long-distance layer.
+  // PackingProvider holds the shared trip checklist (Sprint 6).
   return (
     <TripsProvider>
       <EventsProvider>
         <MemoryProvider>
           <SpaceProvider>
             <WishlistProvider>
-              <AppShell>{children}</AppShell>
+              <PackingProvider>
+                <AppShell>{children}</AppShell>
+              </PackingProvider>
             </WishlistProvider>
           </SpaceProvider>
         </MemoryProvider>

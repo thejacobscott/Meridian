@@ -19,6 +19,7 @@ export const SAMPLE_TRIPS: Trip[] = [
     accent_color: "#c2664a",
     cover_photo_url: null,
     currency: "EUR",
+    budget: 2500,
     created_at: "2026-03-02T10:00:00.000Z",
   },
   {
@@ -32,6 +33,7 @@ export const SAMPLE_TRIPS: Trip[] = [
     accent_color: "#8a9a7b",
     cover_photo_url: null,
     currency: "JPY",
+    budget: null,
     created_at: "2026-01-18T09:00:00.000Z",
   },
   {
@@ -45,6 +47,7 @@ export const SAMPLE_TRIPS: Trip[] = [
     accent_color: "#b98a3c",
     cover_photo_url: null,
     currency: "EUR",
+    budget: 4000,
     created_at: "2025-05-04T08:00:00.000Z",
   },
 ];

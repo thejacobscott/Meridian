@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { Images } from "lucide-react";
+import { BookHeart, Images } from "lucide-react";
 import { useTripMemory } from "@/lib/memory/store";
 import { summarizeTripMemory, type PhotoRecord } from "@/lib/memory/types";
 import { tripDays } from "@/lib/itinerary/types";
@@ -60,9 +61,22 @@ export function MemoryTab({ trip }: { trip: Trip }) {
     ? parts.join(" · ")
     : "This scrapbook's empty for now — add a photo or a few words to any day below, and it keeps.";
 
+  const hasMemories = summary.photoCount > 0 || summary.daysWithContent > 0;
+
   return (
     <div className="space-y-7">
-      <p className="text-sm text-ink-soft text-balance">{intro}</p>
+      <div className="flex items-start justify-between gap-4">
+        <p className="text-sm text-ink-soft text-balance">{intro}</p>
+        {hasMemories && (
+          <Link
+            href={`/trips/${trip.id}/book`}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-line px-3.5 py-2 text-sm font-medium text-ink-soft transition-colors hover:border-accent/40 hover:text-ink"
+          >
+            <BookHeart size={15} strokeWidth={1.75} />
+            Make a book
+          </Link>
+        )}
+      </div>
 
       <motion.div
         variants={staggerContainer}

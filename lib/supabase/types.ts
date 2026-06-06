@@ -56,6 +56,7 @@ export type Database = {
           accent_color: string | null;
           cover_photo_url: string | null;
           currency: string;
+          budget: number | null;
           created_by: string | null;
           updated_at: string;
         } & Timestamps;
@@ -71,6 +72,7 @@ export type Database = {
           accent_color?: string | null;
           cover_photo_url?: string | null;
           currency?: string;
+          budget?: number | null;
           created_by?: string | null;
         };
         Update: Partial<{
@@ -83,6 +85,7 @@ export type Database = {
           accent_color: string | null;
           cover_photo_url: string | null;
           currency: string;
+          budget: number | null;
         }>;
         Relationships: [];
       };

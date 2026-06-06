@@ -39,7 +39,10 @@ import {
 } from "@/lib/trips/types";
 import { ItineraryTab } from "@/components/itinerary/itinerary-tab";
 import { BalanceTab } from "@/components/itinerary/balance-tab";
+import { MapTab } from "@/components/map/map-tab";
 import { MemoryTab } from "@/components/memory/memory-tab";
+import { PackingTab } from "@/components/packing/packing-tab";
+import { BudgetTab } from "@/components/budget/budget-tab";
 import { CoverImage } from "./cover-image";
 import { StatusPill } from "./status-pill";
 import { TripForm } from "./trip-form";
@@ -267,6 +270,15 @@ function TripDetailView({
             >
               <BalanceTab trip={trip} />
             </motion.div>
+          ) : active.id === "map" ? (
+            <motion.div
+              key="map"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, transition: { duration: 0.25 } }}
+              exit={{ opacity: 0, transition: { duration: 0.15 } }}
+            >
+              <MapTab trip={trip} />
+            </motion.div>
           ) : active.id === "memory" ? (
             <motion.div
               key="memory"
@@ -275,6 +287,24 @@ function TripDetailView({
               exit={{ opacity: 0, transition: { duration: 0.15 } }}
             >
               <MemoryTab trip={trip} />
+            </motion.div>
+          ) : active.id === "packing" ? (
+            <motion.div
+              key="packing"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, transition: { duration: 0.25 } }}
+              exit={{ opacity: 0, transition: { duration: 0.15 } }}
+            >
+              <PackingTab trip={trip} />
+            </motion.div>
+          ) : active.id === "budget" ? (
+            <motion.div
+              key="budget"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, transition: { duration: 0.25 } }}
+              exit={{ opacity: 0, transition: { duration: 0.15 } }}
+            >
+              <BudgetTab trip={trip} />
             </motion.div>
           ) : (
             <motion.section

@@ -40,6 +40,7 @@ export const SAMPLE_EVENTS: ItineraryEvent[] = [
     end_time: "15:30",
     location_name: "Alfama guesthouse",
     booking_ref: "TP 1187",
+    cost: 420,
   }),
   ev({
     id: "ev-lis-timeout",
@@ -98,6 +99,7 @@ export const SAMPLE_EVENTS: ItineraryEvent[] = [
     start_time: "20:00",
     location_name: "Tasca do Chico",
     booking_ref: "Table for 2",
+    cost: 35,
   }),
 
   // Day 3 — Mon 23 Jun (looser, mostly ideas)
@@ -128,6 +130,7 @@ export const SAMPLE_EVENTS: ItineraryEvent[] = [
     category_id: "cat-adventure",
     status: "idea",
     notes: "Pena Palace + Quinta da Regaleira. Book the early train.",
+    cost: 90,
   }),
   ev({
     id: "ev-lis-lxfactory",

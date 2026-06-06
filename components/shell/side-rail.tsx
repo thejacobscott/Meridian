@@ -10,7 +10,7 @@ import { spring } from "@/lib/motion";
 export function SideRail() {
   const pathname = usePathname();
   return (
-    <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-line bg-paper/60 px-4 py-7 md:flex">
+    <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-line bg-paper/60 px-4 py-7 md:flex print:!hidden">
       <Link href="/" className="px-3">
         <span className="font-display text-[1.7rem] tracking-tight">
           Meridian

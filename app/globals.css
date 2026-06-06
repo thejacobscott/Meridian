@@ -153,3 +153,41 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ----------------------------------------------------------------------------
+   Print — the photo-book export (Sprint 6). Drop the app chrome, render colors
+   true (covers, accents, photos), and give the sheet calm margins so the
+   browser's "Save as PDF" yields a real keepsake. Controls opt out with
+   `.no-print`; each .book-page starts a fresh sheet; .book-keep never splits.
+---------------------------------------------------------------------------- */
+@page {
+  margin: 14mm;
+}
+
+@media print {
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    background: #ffffff;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .book-page {
+    break-after: page;
+  }
+  .book-page:last-child {
+    break-after: auto;
+  }
+
+  .book-keep {
+    break-inside: avoid;
+  }
+}

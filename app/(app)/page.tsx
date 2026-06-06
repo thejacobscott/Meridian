@@ -7,6 +7,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ReunionHero } from "@/components/home/reunion-hero";
 import { DualClocks } from "@/components/home/dual-clocks";
+import { OnThisDay } from "@/components/home/on-this-day";
 import { cn } from "@/lib/cn";
 import { fadeUp, staggerContainer } from "@/lib/motion";
 
@@ -47,6 +48,10 @@ export default function HomePage() {
       <motion.section variants={fadeUp}>
         <ReunionHero />
       </motion.section>
+
+      {/* On this day — a past trip's memory, if today lines up with one. Self-
+          hides otherwise, so it never leaves a hole. */}
+      <OnThisDay />
 
       {/* Right now — the distance, with a face on it */}
       <motion.section variants={fadeUp} className="space-y-4">

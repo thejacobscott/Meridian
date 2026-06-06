@@ -17,6 +17,7 @@ import {
   type ItineraryEvent,
 } from "@/lib/itinerary/types";
 import { effectiveStatus, type Trip } from "@/lib/trips/types";
+import { WeatherStrip } from "@/components/weather/weather-strip";
 import { DayStrip } from "./day-strip";
 import { EventCard } from "./event-card";
 import { EventForm } from "./event-form";
@@ -119,6 +120,8 @@ export function ItineraryTab({ trip }: { trip: Trip }) {
           <ChevronRight size={18} strokeWidth={1.75} className="shrink-0 text-ink-soft" />
         </button>
       )}
+
+      <WeatherStrip trip={trip} />
 
       <DayStrip
         days={days}

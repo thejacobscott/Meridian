@@ -40,6 +40,9 @@ export function TripForm({
   const [start, setStart] = React.useState(trip?.start_date ?? "");
   const [end, setEnd] = React.useState(trip?.end_date ?? "");
   const [currency, setCurrency] = React.useState(trip?.currency ?? "USD");
+  const [budget, setBudget] = React.useState(
+    trip?.budget != null ? String(trip.budget) : "",
+  );
   const [accent, setAccent] = React.useState(
     trip?.accent_color ?? DEFAULT_ACCENT.color,
   );
@@ -59,12 +62,16 @@ export function TripForm({
     if (!canSave) return;
     setSaving(true);
     try {
+      const parsedBudget = budget.trim()
+        ? Number.parseFloat(budget.replace(/[^0-9.]/g, ""))
+        : NaN;
       const draft: TripDraft = {
         title: title.trim(),
         destination: destination.trim() || null,
         start_date: start || null,
         end_date: end || null,
         currency,
+        budget: Number.isNaN(parsedBudget) || parsedBudget <= 0 ? null : parsedBudget,
         accent_color: accent,
         cover_photo_url: cover,
         status: statusMode === "auto" ? null : statusMode,
@@ -157,24 +164,35 @@ export function TripForm({
         </div>
       </Field>
 
-      <Field label="Currency" hint="For balances and budgets later on.">
-        <div className="relative">
-          <select
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value)}
-            className="h-11 w-full appearance-none rounded-lg border border-line bg-surface px-3.5 text-[0.95rem] text-ink shadow-press transition-colors focus:border-accent/60 focus-visible:outline-none"
-          >
-            {(CURRENCIES.includes(currency)
-              ? CURRENCIES
-              : [currency, ...CURRENCIES]
-            ).map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
-      </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Currency" hint="Used across this trip.">
+          <div className="relative">
+            <select
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              className="h-11 w-full appearance-none rounded-lg border border-line bg-surface px-3.5 text-[0.95rem] text-ink shadow-press transition-colors focus:border-accent/60 focus-visible:outline-none"
+            >
+              {(CURRENCIES.includes(currency)
+                ? CURRENCIES
+                : [currency, ...CURRENCIES]
+              ).map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+        </Field>
+        <Field label="Budget" hint="Optional target.">
+          <Input
+            value={budget}
+            onChange={(e) => setBudget(e.target.value)}
+            inputMode="decimal"
+            placeholder="2,500"
+            className="tabular-nums"
+          />
+        </Field>
+      </div>
 
       <Field
         label="Status"

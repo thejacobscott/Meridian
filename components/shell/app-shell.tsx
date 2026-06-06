@@ -2,6 +2,7 @@ import { type ReactNode } from "react";
 import { SideRail } from "./side-rail";
 import { BottomNav } from "./bottom-nav";
 import { PageTransition } from "./page-transition";
+import { Welcome } from "@/components/onboarding/welcome";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -13,6 +14,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </main>
       <BottomNav />
+      <Welcome />
     </div>
   );
 }
