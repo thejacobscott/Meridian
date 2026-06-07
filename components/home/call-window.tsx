@@ -6,10 +6,10 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/cn";
 import { useSpace } from "@/lib/space/store";
 import {
-  WAKE_END_MIN,
-  WAKE_START_MIN,
   awakeOverlap,
+  withinWake,
   zonedMinutes,
+  type WakeWindow,
 } from "@/lib/space/clock";
 
 const DAY = 1440;
@@ -44,18 +44,33 @@ export function CallWindow() {
 
   const data = React.useMemo(() => {
     if (!now) return null;
+    const youWake: WakeWindow = { start: you.wakeStart, end: you.wakeEnd };
+    const partnerWake: WakeWindow = {
+      start: partner.wakeStart,
+      end: partner.wakeEnd,
+    };
     const { windows, totalMinutes, diffMinutes } = awakeOverlap(
       now,
       partner.tz,
       you.tz,
+      youWake,
+      partnerWake,
     );
     const yourMin = zonedMinutes(now, you.tz);
     const theirMin = zonedMinutes(now, partner.tz);
-    const yAwake = yourMin >= WAKE_START_MIN && yourMin < WAKE_END_MIN;
-    const pAwake = theirMin >= WAKE_START_MIN && theirMin < WAKE_END_MIN;
+    const yAwake = withinWake(yourMin, youWake);
+    const pAwake = withinWake(theirMin, partnerWake);
     const nowGood = windows.some((w) => yourMin >= w.start && yourMin < w.end);
     return { windows, totalMinutes, diffMinutes, yourMin, yAwake, pAwake, nowGood };
-  }, [now, partner.tz, you.tz]);
+  }, [
+    now,
+    partner.tz,
+    you.tz,
+    you.wakeStart,
+    you.wakeEnd,
+    partner.wakeStart,
+    partner.wakeEnd,
+  ]);
 
   const status = (() => {
     if (!data) return { text: "", good: false };

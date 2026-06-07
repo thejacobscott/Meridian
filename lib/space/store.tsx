@@ -5,6 +5,8 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getBrowserClient } from "@/lib/supabase/client";
 import {
   DEFAULT_SPACE,
+  DEFAULT_WAKE_END,
+  DEFAULT_WAKE_START,
   FALLBACK_TZ,
   type MemberPatch,
   type MemberSlot,
@@ -56,7 +58,17 @@ function loadFromStorage(): SpaceState | null {
     ) {
       return null;
     }
-    return parsed as SpaceState;
+    // Backfill waking hours for spaces saved before they existed.
+    const members = parsed.members.map((m: Partial<SpaceMember>) => ({
+      slot: m.slot as MemberSlot,
+      name: typeof m.name === "string" ? m.name : "",
+      city: m.city ?? null,
+      tz: typeof m.tz === "string" ? m.tz : FALLBACK_TZ,
+      wakeStart:
+        typeof m.wakeStart === "number" ? m.wakeStart : DEFAULT_WAKE_START,
+      wakeEnd: typeof m.wakeEnd === "number" ? m.wakeEnd : DEFAULT_WAKE_END,
+    })) as [SpaceMember, SpaceMember];
+    return { name: parsed.name, members };
   } catch {
     return null;
   }
@@ -127,6 +139,8 @@ export interface SpaceMemberRow {
   user_id: string;
   display_name: string | null;
   home_city: string | null;
+  wake_start: number;
+  wake_end: number;
   created_at: string;
 }
 
@@ -156,12 +170,16 @@ function deriveSpace(snap: SpaceSnapshot): {
     name: rowA?.display_name?.trim() || "You",
     city: rowA?.home_city ?? null,
     tz: snap.homeTzA || FALLBACK_TZ,
+    wakeStart: rowA?.wake_start ?? DEFAULT_WAKE_START,
+    wakeEnd: rowA?.wake_end ?? DEFAULT_WAKE_END,
   };
   const memberB: SpaceMember = {
     slot: "b",
     name: rowB?.display_name?.trim() || "Your person",
     city: rowB?.home_city ?? null,
     tz: snap.homeTzB || FALLBACK_TZ,
+    wakeStart: rowB?.wake_start ?? DEFAULT_WAKE_START,
+    wakeEnd: rowB?.wake_end ?? DEFAULT_WAKE_END,
   };
 
   // You're slot "a" unless the joiner's row is the one that's yours.
@@ -189,13 +207,22 @@ function patchSnapshot(
     homeTzA: patch.tz !== undefined && slot === "a" ? patch.tz : snap.homeTzA,
     homeTzB: patch.tz !== undefined && slot === "b" ? patch.tz : snap.homeTzB,
   };
-  if (target && (patch.name !== undefined || patch.city !== undefined)) {
+  if (
+    target &&
+    (patch.name !== undefined ||
+      patch.city !== undefined ||
+      patch.wakeStart !== undefined ||
+      patch.wakeEnd !== undefined)
+  ) {
     next.members = snap.members.map((m) =>
       m.user_id === target.user_id
         ? {
             ...m,
             display_name: patch.name !== undefined ? patch.name : m.display_name,
             home_city: patch.city !== undefined ? patch.city : m.home_city,
+            wake_start:
+              patch.wakeStart !== undefined ? patch.wakeStart : m.wake_start,
+            wake_end: patch.wakeEnd !== undefined ? patch.wakeEnd : m.wake_end,
           }
         : m,
     );
@@ -216,7 +243,7 @@ async function fetchSnapshot(
       .single(),
     supabase
       .from("members")
-      .select("user_id, display_name, home_city, created_at")
+      .select("user_id, display_name, home_city, wake_start, wake_end, created_at")
       .eq("space_id", spaceId)
       .order("created_at", { ascending: true }),
   ]);
@@ -295,11 +322,25 @@ function SupabaseSpaceProvider({
             )
             .eq("id", spaceId);
         }
-        // Names/cities live on your own member row — RLS only lets you edit yours.
-        if ((patch.name !== undefined || patch.city !== undefined) && slot === youSlot) {
-          const upd: { display_name?: string | null; home_city?: string | null } = {};
+        // Names/cities/waking hours live on your own member row — RLS only lets
+        // you edit yours.
+        if (
+          (patch.name !== undefined ||
+            patch.city !== undefined ||
+            patch.wakeStart !== undefined ||
+            patch.wakeEnd !== undefined) &&
+          slot === youSlot
+        ) {
+          const upd: {
+            display_name?: string | null;
+            home_city?: string | null;
+            wake_start?: number;
+            wake_end?: number;
+          } = {};
           if (patch.name !== undefined) upd.display_name = patch.name;
           if (patch.city !== undefined) upd.home_city = patch.city;
+          if (patch.wakeStart !== undefined) upd.wake_start = patch.wakeStart;
+          if (patch.wakeEnd !== undefined) upd.wake_end = patch.wakeEnd;
           await supabase
             .from("members")
             .update(upd)

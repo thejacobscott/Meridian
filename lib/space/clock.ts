@@ -1,4 +1,4 @@
-import { FALLBACK_TZ } from "./types";
+import { DEFAULT_WAKE_END, DEFAULT_WAKE_START, FALLBACK_TZ } from "./types";
 
 /**
  * Wall-clock pieces for an instant in a given IANA zone. Pure + locale-stable
@@ -72,9 +72,44 @@ export function offsetLabel(date: Date, tz: string, baseTz: string): string {
   return `${parts.join(" ")} ${ahead ? "ahead" : "behind"}`;
 }
 
-/** The hours we treat as "awake" for the call-overlap band (minutes from midnight). */
-export const WAKE_START_MIN = 8 * 60; // 8:00 AM
-export const WAKE_END_MIN = 23 * 60; // 11:00 PM
+/** A person's waking window, in minutes from local midnight. */
+export interface WakeWindow {
+  start: number;
+  end: number;
+}
+
+/** Fallback waking window when a member hasn't set their own. */
+export const DEFAULT_WAKE: WakeWindow = {
+  start: DEFAULT_WAKE_START,
+  end: DEFAULT_WAKE_END,
+};
+
+/**
+ * Is `localMin` (minutes from local midnight) inside the waking window? Handles
+ * windows that wrap past midnight (e.g. a night owl awake 9:00 AM → 2:00 AM).
+ */
+export function withinWake(localMin: number, w: WakeWindow): boolean {
+  const m = ((Math.round(localMin) % 1440) + 1440) % 1440;
+  if (w.start === w.end) return false;
+  return w.start < w.end
+    ? m >= w.start && m < w.end
+    : m >= w.start || m < w.end;
+}
+
+/** "08:00" ⇄ minutes, for binding a native <input type="time"> to a window. */
+export function minutesToHHMM(min: number): string {
+  const m = ((Math.round(min) % 1440) + 1440) % 1440;
+  return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+}
+
+export function hhmmToMinutes(value: string): number | null {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(value.trim());
+  if (!m) return null;
+  const h = Number(m[1]);
+  const min = Number(m[2]);
+  if (h > 23 || min > 59) return null;
+  return h * 60 + min;
+}
 
 /** How far `tz` is from `baseTz` right now, in minutes (positive = ahead). */
 export function offsetMinutesBetween(
@@ -119,22 +154,22 @@ export interface AwakeOverlap {
 
 /**
  * When are both people awake, expressed in `baseTz` (your) local time? Powers the
- * "good time to call" band. Your waking window never wraps midnight, so the
- * overlap resolves to 0–2 tidy windows inside the day.
+ * "good time to call" band, using each person's own waking window. The overlap
+ * resolves to 0–2 windows across the day (a window that wraps midnight shows as
+ * one at each edge).
  */
 export function awakeOverlap(
   date: Date,
   tz: string,
   baseTz: string,
+  baseWake: WakeWindow = DEFAULT_WAKE,
+  otherWake: WakeWindow = DEFAULT_WAKE,
 ): AwakeOverlap {
   const diffMinutes = offsetMinutesBetween(date, tz, baseTz);
   const step = 15;
-  const isAwake = (localMin: number) => {
-    const m = ((localMin % 1440) + 1440) % 1440;
-    return m >= WAKE_START_MIN && m < WAKE_END_MIN;
-  };
   const bothAwakeAt = (baseMin: number) =>
-    isAwake(baseMin) && isAwake(baseMin + diffMinutes);
+    withinWake(baseMin, baseWake) &&
+    withinWake(baseMin + diffMinutes, otherWake);
 
   const windows: OverlapWindow[] = [];
   let runStart: number | null = null;

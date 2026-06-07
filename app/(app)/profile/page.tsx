@@ -5,6 +5,7 @@ import { Hairline } from "@/components/ui/hairline";
 import { buttonVariants } from "@/components/ui/button";
 import { InviteCode } from "@/components/space/invite-code";
 import { SpaceEditor } from "@/components/space/space-editor";
+import { YourAwakeHours } from "@/components/space/your-awake-hours";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/auth/actions";
@@ -105,6 +106,8 @@ function ConnectedProfile({
           );
         })}
       </Card>
+
+      <YourAwakeHours />
 
       {awaitingPartner && (
         <Card className="px-5 py-5">

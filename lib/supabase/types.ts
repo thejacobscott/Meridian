@@ -31,6 +31,8 @@ export type Database = {
           display_name: string | null;
           avatar_url: string | null;
           home_city: string | null;
+          wake_start: number;
+          wake_end: number;
         } & Timestamps;
         Insert: {
           id?: string;
@@ -39,8 +41,16 @@ export type Database = {
           display_name?: string | null;
           avatar_url?: string | null;
           home_city?: string | null;
+          wake_start?: number;
+          wake_end?: number;
         };
-        Update: Partial<{ display_name: string | null; avatar_url: string | null; home_city: string | null }>;
+        Update: Partial<{
+          display_name: string | null;
+          avatar_url: string | null;
+          home_city: string | null;
+          wake_start: number;
+          wake_end: number;
+        }>;
         Relationships: [];
       };
       trips: {

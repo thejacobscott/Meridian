@@ -9,6 +9,7 @@ import { zonedTime } from "@/lib/space/clock";
 import { useSpace } from "@/lib/space/store";
 import { prettyZone, useTimeZones } from "@/lib/space/zones";
 import type { MemberPatch, MemberSlot, SpaceMember } from "@/lib/space/types";
+import { AwakeHoursField } from "./awake-hours";
 
 /**
  * Editable two-person space for preview mode. Names and cities commit on blur,
@@ -129,6 +130,13 @@ function MemberEditor({
           </select>
         </Field>
       </div>
+
+      <AwakeHoursField
+        className="mt-3"
+        wakeStart={member.wakeStart}
+        wakeEnd={member.wakeEnd}
+        onChange={(patch) => void onChange(slot, patch)}
+      />
 
       <p className="mt-3 flex items-center gap-1.5 text-sm tabular-nums text-ink-soft">
         <Clock size={14} strokeWidth={1.6} />

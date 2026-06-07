@@ -13,6 +13,9 @@ export interface SpaceMember {
   city: string | null;
   /** IANA timezone, e.g. "America/New_York". */
   tz: string;
+  /** Waking window (minutes from local midnight) — powers "a good time to call". */
+  wakeStart: number;
+  wakeEnd: number;
 }
 
 export interface SpaceState {
@@ -26,6 +29,8 @@ export interface MemberPatch {
   name?: string;
   city?: string | null;
   tz?: string;
+  wakeStart?: number;
+  wakeEnd?: number;
 }
 
 /** Safe fallback when Intl can't resolve a zone. */
@@ -37,11 +42,29 @@ export const FALLBACK_TZ = "UTC";
  * obvious placeholders the couple edits on the profile; the classic NY↔London
  * pair gives the clocks a real five-hour offset to show off out of the box.
  */
+/** Default waking window (minutes from midnight): 8:00 AM – 11:00 PM. */
+export const DEFAULT_WAKE_START = 8 * 60;
+export const DEFAULT_WAKE_END = 23 * 60;
+
 export const DEFAULT_SPACE: SpaceState = {
   name: "Us",
   members: [
-    { slot: "a", name: "You", city: "New York", tz: "America/New_York" },
-    { slot: "b", name: "Your person", city: "London", tz: "Europe/London" },
+    {
+      slot: "a",
+      name: "You",
+      city: "New York",
+      tz: "America/New_York",
+      wakeStart: DEFAULT_WAKE_START,
+      wakeEnd: DEFAULT_WAKE_END,
+    },
+    {
+      slot: "b",
+      name: "Your person",
+      city: "London",
+      tz: "Europe/London",
+      wakeStart: DEFAULT_WAKE_START,
+      wakeEnd: DEFAULT_WAKE_END,
+    },
   ],
 };
 

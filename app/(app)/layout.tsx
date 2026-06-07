@@ -48,7 +48,7 @@ export default async function AppLayout({
         .single(),
       supabase
         .from("members")
-        .select("user_id, display_name, home_city, created_at")
+        .select("user_id, display_name, home_city, wake_start, wake_end, created_at")
         .eq("space_id", membership.space_id)
         .order("created_at", { ascending: true }),
     ]);
