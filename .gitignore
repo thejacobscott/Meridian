@@ -15,6 +15,7 @@
 
 # next.js
 /.next/
+/.next-preview/
 /out/
 
 # production
@@ -37,6 +38,11 @@ yarn-error.log*
 
 # vercel
 .vercel
+
+# supabase — migrations are tracked; local CLI config/state is not
+/supabase/config.toml
+/supabase/.branches/
+/supabase/.temp/
 
 # typescript
 *.tsbuildinfo
