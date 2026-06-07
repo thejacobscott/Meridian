@@ -186,9 +186,9 @@ function PreviewProfile() {
       <Hairline />
 
       <p className="text-balance text-center text-sm text-ink-soft">
-        Accounts, the magic-link sign-in, and live sync between the two of you
-        switch on once Supabase is connected.{" "}
-        <span className="text-ink">See the README to finish setup.</span>
+        You&apos;re in preview — every screen works right here on this device.
+        Sign-in and live syncing between the two of you switch on once your
+        space is connected.
       </p>
     </div>
   );

@@ -71,3 +71,81 @@ export function offsetLabel(date: Date, tz: string, baseTz: string): string {
   if (m) parts.push(`${m} min`);
   return `${parts.join(" ")} ${ahead ? "ahead" : "behind"}`;
 }
+
+/** The hours we treat as "awake" for the call-overlap band (minutes from midnight). */
+export const WAKE_START_MIN = 8 * 60; // 8:00 AM
+export const WAKE_END_MIN = 23 * 60; // 11:00 PM
+
+/** How far `tz` is from `baseTz` right now, in minutes (positive = ahead). */
+export function offsetMinutesBetween(
+  date: Date,
+  tz: string,
+  baseTz: string,
+): number {
+  return tzOffsetMinutes(date, tz) - tzOffsetMinutes(date, baseTz);
+}
+
+/** Minutes since local midnight in `tz` for the given instant (0–1439). */
+export function zonedMinutes(date: Date, tz: string): number {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz || FALLBACK_TZ,
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: false,
+    }).formatToParts(date);
+    const h = parseInt(parts.find((p) => p.type === "hour")?.value ?? "0", 10) % 24;
+    const m = parseInt(parts.find((p) => p.type === "minute")?.value ?? "0", 10);
+    return h * 60 + m;
+  } catch {
+    return 0;
+  }
+}
+
+export interface OverlapWindow {
+  /** Minutes from your local midnight (0–1440). */
+  start: number;
+  end: number;
+}
+
+export interface AwakeOverlap {
+  /** Contiguous windows, in `baseTz` (your) local minutes, when both are awake. */
+  windows: OverlapWindow[];
+  /** Total overlapping minutes across the day. */
+  totalMinutes: number;
+  /** How far `tz` is from `baseTz`, in minutes. */
+  diffMinutes: number;
+}
+
+/**
+ * When are both people awake, expressed in `baseTz` (your) local time? Powers the
+ * "good time to call" band. Your waking window never wraps midnight, so the
+ * overlap resolves to 0–2 tidy windows inside the day.
+ */
+export function awakeOverlap(
+  date: Date,
+  tz: string,
+  baseTz: string,
+): AwakeOverlap {
+  const diffMinutes = offsetMinutesBetween(date, tz, baseTz);
+  const step = 15;
+  const isAwake = (localMin: number) => {
+    const m = ((localMin % 1440) + 1440) % 1440;
+    return m >= WAKE_START_MIN && m < WAKE_END_MIN;
+  };
+  const bothAwakeAt = (baseMin: number) =>
+    isAwake(baseMin) && isAwake(baseMin + diffMinutes);
+
+  const windows: OverlapWindow[] = [];
+  let runStart: number | null = null;
+  for (let m = 0; m <= 1440; m += step) {
+    const on = m < 1440 && bothAwakeAt(m);
+    if (on && runStart === null) runStart = m;
+    if (!on && runStart !== null) {
+      windows.push({ start: runStart, end: m });
+      runStart = null;
+    }
+  }
+  const totalMinutes = windows.reduce((s, w) => s + (w.end - w.start), 0);
+  return { windows, totalMinutes, diffMinutes };
+}

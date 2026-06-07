@@ -7,7 +7,9 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ReunionHero } from "@/components/home/reunion-hero";
 import { DualClocks } from "@/components/home/dual-clocks";
+import { CallWindow } from "@/components/home/call-window";
 import { OnThisDay } from "@/components/home/on-this-day";
+import { TogetherKeepsake } from "@/components/home/together-keepsake";
 import { cn } from "@/lib/cn";
 import { fadeUp, staggerContainer } from "@/lib/motion";
 
@@ -57,6 +59,7 @@ export default function HomePage() {
       <motion.section variants={fadeUp} className="space-y-4">
         <SectionHeading eyebrow="Right now" title="Where you each are" />
         <DualClocks />
+        <CallWindow />
       </motion.section>
 
       {/* Someday peek */}
@@ -99,6 +102,7 @@ export default function HomePage() {
           title="Every trip, kept forever"
           href="/trips"
         />
+        <TogetherKeepsake />
         <Link href="/trips" className="group block">
           <Card className="px-6 py-7 transition-colors group-hover:border-clay/30">
             <div className="flex items-center gap-4">
