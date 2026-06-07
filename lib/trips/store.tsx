@@ -1,7 +1,11 @@
 "use client";
 
 import * as React from "react";
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { getBrowserClient } from "@/lib/supabase/client";
+import type { Tables } from "@/lib/supabase/types";
+import { useSpace } from "@/lib/space/store";
 import { DEFAULT_ACCENT } from "./accents";
 import { SAMPLE_TRIPS } from "./sample";
 import { deriveStatus, type Trip, type TripDraft, type TripStatus } from "./types";
@@ -163,13 +167,219 @@ function PreviewTripsProvider({ children }: { children: React.ReactNode }) {
 }
 
 // ---------------------------------------------------------------------------
-// Provider entry. When Supabase is configured the real backend (reads, writes,
-// Storage-backed covers, realtime) lands with the data sprint; until then the
-// app runs on the preview backend above. The context interface stays identical
-// so screens never need to know which is behind them.
+// Supabase backend. Trips are space-scoped: an initial select seeds state, then
+// a realtime channel (postgres_changes, RLS-scoped to this space) keeps both
+// devices in sync. Writes are optimistic and reconcile against the realtime
+// echo by id — client-generated UUIDs make the optimistic row and its echo the
+// same row, so the echo is a no-op replace rather than a duplicate.
+// ---------------------------------------------------------------------------
+function newId(): string {
+  return typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `trip-${Date.now()}`;
+}
+
+function rowToTrip(r: Tables<"trips">): Trip {
+  return {
+    id: r.id,
+    title: r.title,
+    destination: r.destination,
+    start_date: r.start_date,
+    end_date: r.end_date,
+    status: r.status,
+    status_override: r.status_override,
+    accent_color: r.accent_color ?? DEFAULT_ACCENT.color,
+    cover_photo_url: r.cover_photo_url,
+    currency: r.currency,
+    budget: r.budget,
+    created_at: r.created_at,
+  };
+}
+
+/** Fold a realtime row change into local state, keyed by id (optimistic-safe). */
+function reconcileTrips(
+  prev: Trip[],
+  payload: RealtimePostgresChangesPayload<Tables<"trips">>,
+): Trip[] {
+  if (payload.eventType === "DELETE") {
+    const id = (payload.old as Partial<Tables<"trips">>).id;
+    return id ? prev.filter((t) => t.id !== id) : prev;
+  }
+  const trip = rowToTrip(payload.new);
+  return prev.some((t) => t.id === trip.id)
+    ? prev.map((t) => (t.id === trip.id ? trip : t))
+    : [trip, ...prev];
+}
+
+function SupabaseTripsProvider({
+  spaceId,
+  userId,
+  children,
+}: {
+  spaceId: string;
+  userId: string;
+  children: React.ReactNode;
+}) {
+  const [trips, setTrips] = React.useState<Trip[]>([]);
+  const [ready, setReady] = React.useState(false);
+
+  // Initial load + live channel. RLS already scopes rows to this space; the
+  // space_id filter is a fast-path so the socket only carries our trips.
+  React.useEffect(() => {
+    const supabase = getBrowserClient();
+    let active = true;
+    void (async () => {
+      const { data } = await supabase
+        .from("trips")
+        .select("*")
+        .eq("space_id", spaceId);
+      if (!active) return;
+      setTrips((data ?? []).map(rowToTrip));
+      setReady(true);
+    })();
+
+    const channel = supabase
+      .channel(`trips:${spaceId}`)
+      .on<Tables<"trips">>(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "trips",
+          filter: `space_id=eq.${spaceId}`,
+        },
+        (payload) => setTrips((prev) => reconcileTrips(prev, payload)),
+      )
+      .subscribe();
+
+    return () => {
+      active = false;
+      void supabase.removeChannel(channel);
+    };
+  }, [spaceId]);
+
+  const value = React.useMemo<TripsContextValue>(() => {
+    const supabase = getBrowserClient();
+    return {
+      trips,
+      ready,
+      getTrip: (id) => trips.find((t) => t.id === id),
+      createTrip: async (draft) => {
+        const { start, end } = draftToDates(draft);
+        const trip: Trip = {
+          id: newId(),
+          title: draft.title.trim() || "Untitled trip",
+          destination: draft.destination?.trim() || null,
+          start_date: start,
+          end_date: end,
+          accent_color: draft.accent_color ?? DEFAULT_ACCENT.color,
+          cover_photo_url: draft.cover_photo_url ?? null,
+          currency: draft.currency ?? "USD",
+          budget: draft.budget ?? null,
+          created_at: new Date().toISOString(),
+          ...resolveStatus(start, end, draft.status),
+        };
+        setTrips((prev) => [trip, ...prev]);
+        const { error } = await supabase.from("trips").insert({
+          id: trip.id,
+          space_id: spaceId,
+          created_by: userId,
+          title: trip.title,
+          destination: trip.destination,
+          start_date: trip.start_date,
+          end_date: trip.end_date,
+          accent_color: trip.accent_color,
+          cover_photo_url: trip.cover_photo_url,
+          currency: trip.currency,
+          budget: trip.budget,
+          status: trip.status,
+          status_override: trip.status_override,
+        });
+        if (error) {
+          setTrips((prev) => prev.filter((t) => t.id !== trip.id));
+          throw error;
+        }
+        return trip;
+      },
+      updateTrip: async (id, draft) => {
+        const previous = trips.find((t) => t.id === id);
+        if (!previous) throw new Error(`Trip ${id} not found`);
+        const start =
+          draft.start_date !== undefined ? draft.start_date : previous.start_date;
+        const end =
+          draft.end_date !== undefined ? draft.end_date : previous.end_date;
+        const updated: Trip = {
+          ...previous,
+          title: draft.title?.trim() || previous.title,
+          destination:
+            draft.destination !== undefined
+              ? draft.destination?.trim() || null
+              : previous.destination,
+          start_date: start,
+          end_date: end,
+          accent_color: draft.accent_color ?? previous.accent_color,
+          cover_photo_url:
+            draft.cover_photo_url !== undefined
+              ? draft.cover_photo_url
+              : previous.cover_photo_url,
+          currency: draft.currency ?? previous.currency,
+          budget: draft.budget !== undefined ? draft.budget : previous.budget,
+          ...resolveStatus(start, end, draft.status, previous),
+        };
+        setTrips((prev) => prev.map((t) => (t.id === id ? updated : t)));
+        const { error } = await supabase
+          .from("trips")
+          .update({
+            title: updated.title,
+            destination: updated.destination,
+            start_date: updated.start_date,
+            end_date: updated.end_date,
+            accent_color: updated.accent_color,
+            cover_photo_url: updated.cover_photo_url,
+            currency: updated.currency,
+            budget: updated.budget,
+            status: updated.status,
+            status_override: updated.status_override,
+          })
+          .eq("id", id);
+        if (error) {
+          setTrips((prev) => prev.map((t) => (t.id === id ? previous : t)));
+          throw error;
+        }
+        return updated;
+      },
+      deleteTrip: async (id) => {
+        const removed = trips.find((t) => t.id === id);
+        setTrips((prev) => prev.filter((t) => t.id !== id));
+        const { error } = await supabase.from("trips").delete().eq("id", id);
+        if (error) {
+          if (removed)
+            setTrips((prev) =>
+              prev.some((t) => t.id === id) ? prev : [removed, ...prev],
+            );
+          throw error;
+        }
+      },
+    };
+  }, [trips, ready, spaceId, userId]);
+
+  return <TripsContext.Provider value={value}>{children}</TripsContext.Provider>;
+}
+
+// ---------------------------------------------------------------------------
+// Provider entry. Real backend when Supabase is configured and the space is
+// resolved (spaceId/userId come from the SpaceProvider above); otherwise the
+// preview backend. The context interface is identical either way, so screens
+// never need to know which is behind them.
 // ---------------------------------------------------------------------------
 export function TripsProvider({ children }: { children: React.ReactNode }) {
-  // Reserved for the Supabase-backed provider; preview is the current runtime.
-  void isSupabaseConfigured;
+  const { spaceId, userId } = useSpace();
+  if (isSupabaseConfigured && spaceId && userId) {
+    return (
+      <SupabaseTripsProvider spaceId={spaceId} userId={userId}>
+        {children}
+      </SupabaseTripsProvider>
+    );
+  }
   return <PreviewTripsProvider>{children}</PreviewTripsProvider>;
 }

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Card } from "@/components/ui/card";
 import { useSpace } from "@/lib/space/store";
+import { usePresence } from "@/lib/presence/store";
 import { offsetLabel, zonedTime } from "@/lib/space/clock";
 import type { SpaceMember } from "@/lib/space/types";
 
@@ -14,6 +15,7 @@ import type { SpaceMember } from "@/lib/space/types";
  */
 export function DualClocks() {
   const { you, partner } = useSpace();
+  const { partnerOnline } = usePresence();
   const [now, setNow] = React.useState<Date | null>(null);
 
   React.useEffect(() => {
@@ -27,7 +29,7 @@ export function DualClocks() {
     <Card className="overflow-hidden">
       <div className="grid grid-cols-2 divide-x divide-line">
         <ClockColumn member={you} now={now} baseTz={you.tz} isYou />
-        <ClockColumn member={partner} now={now} baseTz={you.tz} />
+        <ClockColumn member={partner} now={now} baseTz={you.tz} online={partnerOnline} />
       </div>
     </Card>
   );
@@ -38,11 +40,13 @@ function ClockColumn({
   now,
   baseTz,
   isYou = false,
+  online = false,
 }: {
   member: SpaceMember;
   now: Date | null;
   baseTz: string;
   isYou?: boolean;
+  online?: boolean;
 }) {
   const z = now ? zonedTime(now, member.tz) : null;
   const sub = isYou
@@ -70,6 +74,16 @@ function ClockColumn({
         {member.city ? `${z?.weekday ? " · " : ""}${member.city}` : ""}
       </p>
       <p className="mt-0.5 text-[0.7rem] text-ink-faint">{sub}</p>
+      {/* "here now" — reserved in both columns so the divider stays balanced;
+          only your person's lights up, and only while they're in the app. */}
+      <p
+        className="mt-1 flex items-center justify-center gap-1.5 text-[0.7rem] text-accent transition-opacity duration-700"
+        style={{ opacity: !isYou && online ? 1 : 0 }}
+        aria-hidden={isYou || !online}
+      >
+        <span className="inline-block size-1.5 rounded-full bg-accent" />
+        here now
+      </p>
     </div>
   );
 }

@@ -4,7 +4,8 @@ import { AppShell } from "@/components/shell/app-shell";
 import { EventsProvider } from "@/lib/itinerary/store";
 import { MemoryProvider } from "@/lib/memory/store";
 import { TripsProvider } from "@/lib/trips/store";
-import { SpaceProvider } from "@/lib/space/store";
+import { SpaceProvider, type SpaceSnapshot, type SpaceMemberRow } from "@/lib/space/store";
+import { PresenceProvider } from "@/lib/presence/store";
 import { WishlistProvider } from "@/lib/wishlist/store";
 import { PackingProvider } from "@/lib/packing/store";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
@@ -19,6 +20,8 @@ import { createClient } from "@/lib/supabase/server";
 export default async function AppLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
+  let spaceInitial: SpaceSnapshot | null = null;
+
   if (isSupabaseConfigured) {
     const supabase = await createClient();
     const {
@@ -34,27 +37,54 @@ export default async function AppLayout({
       .maybeSingle();
 
     if (!membership) redirect("/welcome");
+
+    // Fetch the space + both members once on the server so the client providers
+    // start with real identity (no first-paint flash, SSR-consistent clocks).
+    const [{ data: space }, { data: members }] = await Promise.all([
+      supabase
+        .from("spaces")
+        .select("name, home_tz_a, home_tz_b")
+        .eq("id", membership.space_id)
+        .single(),
+      supabase
+        .from("members")
+        .select("user_id, display_name, home_city, created_at")
+        .eq("space_id", membership.space_id)
+        .order("created_at", { ascending: true }),
+    ]);
+
+    if (space) {
+      spaceInitial = {
+        spaceId: membership.space_id,
+        userId: user.id,
+        name: space.name,
+        homeTzA: space.home_tz_a,
+        homeTzB: space.home_tz_b,
+        members: (members ?? []) as SpaceMemberRow[],
+      };
+    }
   }
 
-  // TripsProvider sits above AppShell (and its per-route PageTransition) so trip
-  // state survives list → detail navigation — required for the shared-element morph.
-  // EventsProvider and MemoryProvider hold the itinerary + scrapbook stores on
-  // the same footing. SpaceProvider (the two of you + time zones) and
-  // WishlistProvider (the someday board) join them for the long-distance layer.
-  // PackingProvider holds the shared trip checklist (Sprint 6).
+  // SpaceProvider is outermost: it resolves the shared space + which slot is you,
+  // and the data stores below (trips, events, memory, wishlist, packing) read
+  // `spaceId` / `you.slot` from it to scope their reads and attribute writes.
+  // TripsProvider still sits above AppShell (and its per-route PageTransition) so
+  // trip state survives list → detail navigation — required for the card→header morph.
   return (
-    <TripsProvider>
-      <EventsProvider>
-        <MemoryProvider>
-          <SpaceProvider>
-            <WishlistProvider>
-              <PackingProvider>
-                <AppShell>{children}</AppShell>
-              </PackingProvider>
-            </WishlistProvider>
-          </SpaceProvider>
-        </MemoryProvider>
-      </EventsProvider>
-    </TripsProvider>
+    <SpaceProvider initial={spaceInitial}>
+      <PresenceProvider>
+        <TripsProvider>
+          <EventsProvider>
+            <MemoryProvider>
+              <WishlistProvider>
+                <PackingProvider>
+                  <AppShell>{children}</AppShell>
+                </PackingProvider>
+              </WishlistProvider>
+            </MemoryProvider>
+          </EventsProvider>
+        </TripsProvider>
+      </PresenceProvider>
+    </SpaceProvider>
   );
 }

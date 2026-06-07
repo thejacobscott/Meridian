@@ -176,6 +176,9 @@ export type Database = {
           taken_at: string | null;
           uploaded_by: string | null;
           is_favorite: boolean;
+          width: number | null;
+          height: number | null;
+          sort_order: number;
         } & Timestamps;
         Insert: {
           id?: string;
@@ -187,8 +190,17 @@ export type Database = {
           taken_at?: string | null;
           uploaded_by?: string | null;
           is_favorite?: boolean;
+          width?: number | null;
+          height?: number | null;
+          sort_order?: number;
         };
-        Update: Partial<{ caption: string | null; is_favorite: boolean; day_id: string | null; event_id: string | null }>;
+        Update: Partial<{
+          caption: string | null;
+          is_favorite: boolean;
+          day_id: string | null;
+          event_id: string | null;
+          sort_order: number;
+        }>;
         Relationships: [];
       };
       wishlist_items: {
