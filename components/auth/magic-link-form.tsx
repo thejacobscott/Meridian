@@ -16,7 +16,9 @@ export function MagicLinkForm({ initialError }: { initialError?: string }) {
   const [error, setError] = useState<string | null>(
     initialError === "link_expired"
       ? "That link has expired. Here's a fresh one."
-      : null,
+      : initialError
+        ? "Something interrupted that sign-in. Here's a fresh link."
+        : null,
   );
 
   async function onSubmit(e: FormEvent) {
