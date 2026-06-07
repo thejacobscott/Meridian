@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, Loader2, Trash2 } from "lucide-react";
+import { Check, Loader2, Plus, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { cn } from "@/lib/cn";
@@ -17,6 +17,35 @@ import {
 import { CoverCropper } from "./cover-cropper";
 
 const CURRENCIES = ["USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "MXN"];
+
+/**
+ * Placeholder destinations for the trip-name field — a different daydream each
+ * time the New-trip sheet opens. Purely cosmetic (shown only while the field is
+ * empty); the couple names the trip whatever they like.
+ */
+const TRIP_NAME_IDEAS = [
+  "Lisbon, slowly",
+  "Istanbul, unhurried",
+  "Iceland, wide open",
+  "Cape Town, someday",
+  "Kyoto in bloom",
+  "Marrakech at dusk",
+  "Patagonia, eventually",
+  "Santorini, just us",
+  "Hanoi, all of it",
+  "the Amalfi Coast",
+  "Banff, snowed in",
+  "Oaxaca, hungry",
+  "New Zealand, end to end",
+  "Seville, in no rush",
+  "Tokyo, neon and quiet",
+  "the Dolomites, on foot",
+  "Lofoten, midnight sun",
+];
+
+function randomTripIdea(): string {
+  return TRIP_NAME_IDEAS[Math.floor(Math.random() * TRIP_NAME_IDEAS.length)];
+}
 
 type StatusMode = "auto" | TripStatus;
 
@@ -53,6 +82,10 @@ export function TripForm({
     trip?.status_override ? trip.status : "auto",
   );
   const [saving, setSaving] = React.useState(false);
+  // A fresh daydream each time the sheet opens (placeholder only).
+  const [namePlaceholder] = React.useState(randomTripIdea);
+  // Budget is opt-in: hidden on a new trip, shown when editing one that has one.
+  const [showBudget, setShowBudget] = React.useState(trip?.budget != null);
 
   const autoStatus = deriveStatus(start || null, end || null);
   const canSave = title.trim().length > 0 && !saving;
@@ -62,9 +95,10 @@ export function TripForm({
     if (!canSave) return;
     setSaving(true);
     try {
-      const parsedBudget = budget.trim()
-        ? Number.parseFloat(budget.replace(/[^0-9.]/g, ""))
-        : NaN;
+      const parsedBudget =
+        showBudget && budget.trim()
+          ? Number.parseFloat(budget.replace(/[^0-9.]/g, ""))
+          : NaN;
       const draft: TripDraft = {
         title: title.trim(),
         destination: destination.trim() || null,
@@ -100,7 +134,7 @@ export function TripForm({
         <Input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Lisbon, slowly"
+          placeholder={namePlaceholder}
           autoFocus
           required
           className="text-[1.05rem]"
@@ -183,15 +217,41 @@ export function TripForm({
             </select>
           </div>
         </Field>
-        <Field label="Budget" hint="Optional target.">
-          <Input
-            value={budget}
-            onChange={(e) => setBudget(e.target.value)}
-            inputMode="decimal"
-            placeholder="2,500"
-            className="tabular-nums"
-          />
-        </Field>
+        {showBudget ? (
+          <Field label="Budget" hint="Optional target.">
+            <div className="relative">
+              <Input
+                value={budget}
+                onChange={(e) => setBudget(e.target.value)}
+                inputMode="decimal"
+                placeholder="2,500"
+                className="tabular-nums pr-9"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setBudget("");
+                  setShowBudget(false);
+                }}
+                aria-label="Remove budget"
+                className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-ink/[0.06] hover:text-clay"
+              >
+                <X size={14} strokeWidth={2} />
+              </button>
+            </div>
+          </Field>
+        ) : (
+          <div className="flex flex-col justify-end">
+            <button
+              type="button"
+              onClick={() => setShowBudget(true)}
+              className="flex h-11 items-center justify-center gap-1.5 rounded-lg border border-dashed border-line text-sm font-medium text-ink-soft transition-colors hover:border-accent/50 hover:text-ink"
+            >
+              <Plus size={15} strokeWidth={2} />
+              Budget
+            </button>
+          </div>
+        )}
       </div>
 
       <Field

@@ -14,6 +14,12 @@ export const ACCENTS: Accent[] = [
   { name: "Sea", color: "#4f8a8b", deep: "#3a6a6b" },
   { name: "Pine", color: "#5a7d63", deep: "#42604a" },
   { name: "Ember", color: "#bb5a3c", deep: "#94462d" },
+  { name: "Coral", color: "#cf7363", deep: "#a8584a" },
+  { name: "Wine", color: "#8c4a52", deep: "#6e3940" },
+  { name: "Mauve", color: "#a97089", deep: "#855868" },
+  { name: "Olive", color: "#8a8243", deep: "#6b6433" },
+  { name: "Walnut", color: "#7a5a48", deep: "#5e4537" },
+  { name: "Indigo", color: "#5b6a93", deep: "#45527a" },
 ];
 
 export const DEFAULT_ACCENT = ACCENTS[0];
