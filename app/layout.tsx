@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
+import { ServiceWorkerCleanup } from "@/components/shell/sw-cleanup";
 
 const fraunces = Fraunces({
   variable: "--font-fraunces",
@@ -38,6 +39,7 @@ export default function RootLayout({
       className={`${fraunces.variable} ${inter.variable} antialiased`}
     >
       <body className="min-h-dvh">
+        <ServiceWorkerCleanup />
         <div className="paper-grain print:hidden" aria-hidden="true" />
         {children}
       </body>
