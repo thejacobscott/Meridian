@@ -2,6 +2,12 @@
 -- A "space" is the shared two-person container. Everything else hangs off it.
 -- Run this in the Supabase SQL editor (or `supabase db push`).
 
+-- The membership helpers below are LANGUAGE sql, whose bodies Postgres checks at
+-- creation time — but they reference tables defined later in this same file.
+-- Defer that body check to runtime so the forward references resolve cleanly.
+-- Scoped to this script/transaction; the setting reverts afterward.
+set check_function_bodies = off;
+
 create extension if not exists pgcrypto;
 
 -- ---------------------------------------------------------------------------
