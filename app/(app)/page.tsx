@@ -99,20 +99,27 @@ export default function HomePage() {
           title="Every trip, kept forever"
           href="/trips"
         />
-        <Card className="px-6 py-7">
-          <div className="flex items-center gap-4">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-clay/12 text-clay">
-              <MapPin size={20} strokeWidth={1.6} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-ink">Your scrapbook is waiting</p>
-              <p className="text-sm text-ink-soft text-balance">
-                The trip you plan today becomes the album you reread next
-                winter — same place, all the photos and notes.
-              </p>
+        <Link href="/trips" className="group block">
+          <Card className="px-6 py-7 transition-colors group-hover:border-clay/30">
+            <div className="flex items-center gap-4">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-clay/12 text-clay">
+                <MapPin size={20} strokeWidth={1.6} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-ink">Your scrapbook is waiting</p>
+                <p className="text-sm text-ink-soft text-balance">
+                  The trip you plan today becomes the album you reread next
+                  winter — same place, all the photos and notes.
+                </p>
+              </div>
+              <ArrowRight
+                size={18}
+                strokeWidth={1.75}
+                className="shrink-0 text-ink-soft/50 transition-transform group-hover:translate-x-0.5"
+              />
             </div>
-          </div>
-        </Card>
+          </Card>
+        </Link>
       </motion.section>
 
       <motion.p

@@ -51,3 +51,12 @@ export const SAMPLE_TRIPS: Trip[] = [
     created_at: "2025-05-04T08:00:00.000Z",
   },
 ];
+
+/**
+ * Sample trips carry a stable `sample-` id prefix; trips the couple create never
+ * do (they get a UUID). That lets the UI label the demo trips and offer a clean
+ * "start fresh" without a separate flag threaded through the store.
+ */
+export function isSampleTrip(trip: Pick<Trip, "id">): boolean {
+  return trip.id.startsWith("sample-");
+}

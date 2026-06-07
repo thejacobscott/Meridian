@@ -7,6 +7,7 @@ import { CoverImage } from "./cover-image";
 import { StatusPill } from "./status-pill";
 import { deepFor } from "@/lib/trips/accents";
 import { fadeUp } from "@/lib/motion";
+import { isSampleTrip } from "@/lib/trips/sample";
 import {
   daysUntilStart,
   effectiveStatus,
@@ -44,6 +45,11 @@ export function TripCard({ trip }: { trip: Trip }) {
             <div className="absolute left-3 top-3">
               <StatusPill status={status} variant="glass" />
             </div>
+            {isSampleTrip(trip) && (
+              <div className="absolute right-3 top-3 rounded-full bg-surface/80 px-2.5 py-1 text-[0.7rem] font-medium uppercase tracking-[0.14em] text-ink-soft ring-1 ring-white/40 backdrop-blur-md">
+                Example
+              </div>
+            )}
             {countdown && (
               <div className="absolute bottom-3 left-3 rounded-full bg-surface/80 px-2.5 py-1 text-xs font-medium tabular-nums text-accent-deep ring-1 ring-white/40 backdrop-blur-md">
                 {countdown}

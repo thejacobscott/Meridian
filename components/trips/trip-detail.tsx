@@ -62,7 +62,7 @@ const TABS: { id: string; label: string; icon: LucideIcon; blurb: string }[] = [
   },
   {
     id: "map",
-    label: "Map",
+    label: "Places",
     icon: MapIcon,
     blurb: "Every stay, meal, and sight as a pin — the whole trip at a glance.",
   },
@@ -108,6 +108,9 @@ function TripDetailView({
   const router = useRouter();
   const reduce = useReducedMotion();
   const headerRef = React.useRef<HTMLDivElement>(null);
+  const tabsRef = React.useRef<HTMLElement>(null);
+  // Edge fades hint that the sub-tabs scroll horizontally on narrow screens.
+  const [tabEdges, setTabEdges] = React.useState({ left: false, right: false });
   // A trip you've already taken opens to its memories; everything else to the plan.
   const [tab, setTab] = React.useState(() =>
     effectiveStatus(trip) === "past" ? "memory" : TABS[0].id,
@@ -121,6 +124,26 @@ function TripDetailView({
   });
   const rawY = useTransform(scrollYProgress, [0, 1], [0, 64]);
   const y = reduce ? 0 : rawY;
+
+  React.useEffect(() => {
+    const el = tabsRef.current;
+    if (!el) return;
+    const update = () => {
+      const { scrollLeft, scrollWidth, clientWidth } = el;
+      setTabEdges({
+        left: scrollLeft > 4,
+        right: scrollLeft + clientWidth < scrollWidth - 4,
+      });
+    };
+    update();
+    el.addEventListener("scroll", update, { passive: true });
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener("scroll", update);
+      ro.disconnect();
+    };
+  }, []);
 
   const status = effectiveStatus(trip);
   const days =
@@ -214,40 +237,57 @@ function TripDetailView({
       </div>
 
       {/* Sub-tabs */}
-      <nav
-        role="tablist"
-        aria-label="Trip sections"
-        className="no-scrollbar -mx-5 mt-5 flex gap-1 overflow-x-auto px-5 sm:-mx-6 sm:px-6"
-      >
-        {TABS.map((t) => {
-          const on = t.id === tab;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              onClick={() => setTab(t.id)}
-              aria-selected={on}
-              className={cn(
-                "relative shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors",
-                on ? "text-ink" : "text-ink-soft hover:text-ink",
-              )}
-            >
-              {on && (
-                <motion.span
-                  layoutId="trip-tab"
-                  className="absolute inset-0 rounded-full bg-surface-2 ring-1 ring-line"
-                  transition={spring}
-                />
-              )}
-              <span className="relative z-10 inline-flex items-center gap-1.5">
-                <t.icon size={15} strokeWidth={1.75} />
-                {t.label}
-              </span>
-            </button>
-          );
-        })}
-      </nav>
+      <div className="relative -mx-5 mt-5 sm:-mx-6">
+        <nav
+          ref={tabsRef}
+          role="tablist"
+          aria-label="Trip sections"
+          className="no-scrollbar flex gap-1 overflow-x-auto px-5 sm:px-6"
+        >
+          {TABS.map((t) => {
+            const on = t.id === tab;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                onClick={() => setTab(t.id)}
+                aria-selected={on}
+                className={cn(
+                  "relative shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                  on ? "text-ink" : "text-ink-soft hover:text-ink",
+                )}
+              >
+                {on && (
+                  <motion.span
+                    layoutId="trip-tab"
+                    className="absolute inset-0 rounded-full bg-surface-2 ring-1 ring-line"
+                    transition={spring}
+                  />
+                )}
+                <span className="relative z-10 inline-flex items-center gap-1.5">
+                  <t.icon size={15} strokeWidth={1.75} />
+                  {t.label}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
+        <div
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-paper to-transparent transition-opacity duration-200 sm:hidden",
+            tabEdges.left ? "opacity-100" : "opacity-0",
+          )}
+        />
+        <div
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-paper to-transparent transition-opacity duration-200 sm:hidden",
+            tabEdges.right ? "opacity-100" : "opacity-0",
+          )}
+        />
+      </div>
 
       {/* Tab panel */}
       <div className="mt-6 min-h-[260px]">

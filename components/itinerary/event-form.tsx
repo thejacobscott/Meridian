@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, Loader2, Sparkles, Trash2 } from "lucide-react";
+import { Check, ChevronDown, Loader2, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/field";
 import { cn } from "@/lib/cn";
@@ -65,6 +65,9 @@ export function EventForm({
   const [notes, setNotes] = React.useState(event?.notes ?? "");
   const [status, setStatus] = React.useState<EventStatus>(event?.status ?? "idea");
   const [saving, setSaving] = React.useState(false);
+  // Quick-add by default: just a title (and maybe a time). Editing opens with
+  // everything visible, since you're there to change the details.
+  const [expanded, setExpanded] = React.useState(Boolean(event));
 
   const canSave = title.trim().length > 0 && !saving;
 
@@ -116,55 +119,6 @@ export function EventForm({
         />
       </Field>
 
-      <Field label="Category">
-        <div className="flex flex-wrap gap-2 pt-0.5">
-          <CategoryButton
-            selected={categoryId === null}
-            onClick={() => setCategoryId(null)}
-          >
-            None
-          </CategoryButton>
-          {DEFAULT_CATEGORIES.map((c) => {
-            const Icon = c.icon;
-            const selected = categoryId === c.id;
-            return (
-              <CategoryButton
-                key={c.id}
-                color={c.color}
-                selected={selected}
-                onClick={() => setCategoryId(c.id)}
-              >
-                <Icon size={13} strokeWidth={2} />
-                {c.name}
-              </CategoryButton>
-            );
-          })}
-        </div>
-      </Field>
-
-      <Field label="Day" hint="Move it between days, or park it in Ideas.">
-        <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 pt-0.5">
-          <DayButton
-            selected={date === null}
-            onClick={() => setDate(null)}
-          >
-            <Sparkles size={13} strokeWidth={1.75} />
-            Ideas
-          </DayButton>
-          {days.map((d) => {
-            const parts = dayParts(d);
-            return (
-              <DayButton key={d} selected={date === d} onClick={() => setDate(d)}>
-                <span className="text-[0.65rem] uppercase tracking-wide opacity-70">
-                  {parts.weekday}
-                </span>
-                {parts.day}
-              </DayButton>
-            );
-          })}
-        </div>
-      </Field>
-
       <div className="grid grid-cols-2 gap-3">
         <Field label="Start">
           <Input type="time" value={start} onChange={(e) => setStart(e.target.value)} />
@@ -174,73 +128,137 @@ export function EventForm({
         </Field>
       </div>
 
-      <Field label="Place">
-        <Input
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          placeholder="Mercado da Ribeira"
-        />
-      </Field>
+      {!expanded && (
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-line py-2.5 text-sm font-medium text-ink-soft transition-colors hover:border-accent/40 hover:text-ink"
+        >
+          <ChevronDown size={15} strokeWidth={1.75} />
+          More details
+        </button>
+      )}
 
-      <div className="grid grid-cols-[1fr_auto] gap-3">
-        <Field label="Cost">
-          <Input
-            type="number"
-            inputMode="decimal"
-            min="0"
-            step="0.01"
-            value={cost}
-            onChange={(e) => setCost(e.target.value)}
-            placeholder="0"
-          />
-        </Field>
-        <Field label="Currency">
-          <select
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value)}
-            className="h-11 appearance-none rounded-lg border border-line bg-surface px-3.5 text-[0.95rem] text-ink shadow-press transition-colors focus:border-accent/60 focus-visible:outline-none"
-          >
-            {(CURRENCIES.includes(currency)
-              ? CURRENCIES
-              : [currency, ...CURRENCIES]
-            ).map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </Field>
-      </div>
+      {expanded && (
+        <>
+          <Field label="Category">
+            <div className="flex flex-wrap gap-2 pt-0.5">
+              <CategoryButton
+                selected={categoryId === null}
+                onClick={() => setCategoryId(null)}
+              >
+                None
+              </CategoryButton>
+              {DEFAULT_CATEGORIES.map((c) => {
+                const Icon = c.icon;
+                const selected = categoryId === c.id;
+                return (
+                  <CategoryButton
+                    key={c.id}
+                    color={c.color}
+                    selected={selected}
+                    onClick={() => setCategoryId(c.id)}
+                  >
+                    <Icon size={13} strokeWidth={2} />
+                    {c.name}
+                  </CategoryButton>
+                );
+              })}
+            </div>
+          </Field>
 
-      <Field label="Booking reference" hint="Confirmation number, table, ticket…">
-        <Input
-          value={booking}
-          onChange={(e) => setBooking(e.target.value)}
-          placeholder="Table for 2"
-        />
-      </Field>
+          <Field label="Day" hint="Move it between days, or park it in Ideas.">
+            <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 pt-0.5">
+              <DayButton
+                selected={date === null}
+                onClick={() => setDate(null)}
+              >
+                <Sparkles size={13} strokeWidth={1.75} />
+                Ideas
+              </DayButton>
+              {days.map((d) => {
+                const parts = dayParts(d);
+                return (
+                  <DayButton key={d} selected={date === d} onClick={() => setDate(d)}>
+                    <span className="text-[0.65rem] uppercase tracking-wide opacity-70">
+                      {parts.weekday}
+                    </span>
+                    {parts.day}
+                  </DayButton>
+                );
+              })}
+            </div>
+          </Field>
 
-      <Field label="Notes">
-        <Textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="Anything you want to remember."
-        />
-      </Field>
+          <Field label="Place">
+            <Input
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Mercado da Ribeira"
+            />
+          </Field>
 
-      <Field label="Status">
-        <div className="flex flex-wrap gap-2 pt-0.5">
-          {EVENT_STATUSES.map((s) => (
-            <StatusChip
-              key={s}
-              active={status === s}
-              onClick={() => setStatus(s)}
-            >
-              {EVENT_STATUS_META[s].label}
-            </StatusChip>
-          ))}
-        </div>
-      </Field>
+          <div className="grid grid-cols-[1fr_auto] gap-3">
+            <Field label="Cost">
+              <Input
+                type="number"
+                inputMode="decimal"
+                min="0"
+                step="0.01"
+                value={cost}
+                onChange={(e) => setCost(e.target.value)}
+                placeholder="0"
+              />
+            </Field>
+            <Field label="Currency">
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="h-11 appearance-none rounded-lg border border-line bg-surface px-3.5 text-[0.95rem] text-ink shadow-press transition-colors focus:border-accent/60 focus-visible:outline-none"
+              >
+                {(CURRENCIES.includes(currency)
+                  ? CURRENCIES
+                  : [currency, ...CURRENCIES]
+                ).map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <Field label="Booking reference" hint="Confirmation number, table, ticket…">
+            <Input
+              value={booking}
+              onChange={(e) => setBooking(e.target.value)}
+              placeholder="Table for 2"
+            />
+          </Field>
+
+          <Field label="Notes">
+            <Textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Anything you want to remember."
+            />
+          </Field>
+
+          <Field label="Status">
+            <div className="flex flex-wrap gap-2 pt-0.5">
+              {EVENT_STATUSES.map((s) => (
+                <StatusChip
+                  key={s}
+                  active={status === s}
+                  onClick={() => setStatus(s)}
+                >
+                  {EVENT_STATUS_META[s].label}
+                </StatusChip>
+              ))}
+            </div>
+          </Field>
+        </>
+      )}
 
       <div className="flex items-center gap-3 pt-1">
         <Button type="submit" disabled={!canSave} className="flex-1">

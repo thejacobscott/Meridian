@@ -7,45 +7,8 @@ import { Card } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/field";
 import { zonedTime } from "@/lib/space/clock";
 import { useSpace } from "@/lib/space/store";
+import { prettyZone, useTimeZones } from "@/lib/space/zones";
 import type { MemberPatch, MemberSlot, SpaceMember } from "@/lib/space/types";
-
-/** "America/New_York" → "America/New York" — readable but still unambiguous. */
-function prettyZone(tz: string): string {
-  return tz.replace(/_/g, " ");
-}
-
-/** The full IANA list when the engine supports it; a curated fallback if not. */
-function useTimeZones(): string[] {
-  return React.useMemo(() => {
-    const intl = Intl as { supportedValuesOf?: (key: string) => string[] };
-    try {
-      const v = intl.supportedValuesOf?.("timeZone");
-      if (Array.isArray(v) && v.length > 0) return v;
-    } catch {
-      // fall through to the curated list
-    }
-    return [
-      "America/Los_Angeles",
-      "America/Denver",
-      "America/Chicago",
-      "America/New_York",
-      "America/Sao_Paulo",
-      "Europe/London",
-      "Europe/Paris",
-      "Europe/Berlin",
-      "Europe/Athens",
-      "Africa/Johannesburg",
-      "Asia/Dubai",
-      "Asia/Kolkata",
-      "Asia/Bangkok",
-      "Asia/Shanghai",
-      "Asia/Tokyo",
-      "Australia/Sydney",
-      "Pacific/Auckland",
-      "UTC",
-    ];
-  }, []);
-}
 
 /**
  * Editable two-person space for preview mode. Names and cities commit on blur,

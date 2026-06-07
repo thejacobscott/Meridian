@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Sheet } from "@/components/ui/sheet";
 import { useTrips } from "@/lib/trips/store";
+import { isSampleTrip } from "@/lib/trips/sample";
 import { staggerContainer } from "@/lib/motion";
 import {
   effectiveStatus,
@@ -24,8 +25,9 @@ const GROUPS: { status: TripStatus; eyebrow: string; title: string }[] = [
 ];
 
 export function TripsScreen() {
-  const { trips, ready, createTrip } = useTrips();
+  const { trips, ready, createTrip, deleteTrip } = useTrips();
   const [creating, setCreating] = React.useState(false);
+  const [confirmFresh, setConfirmFresh] = React.useState(false);
 
   const sorted = sortTripsForList(trips);
   const groups = GROUPS.map((g) => ({
@@ -34,6 +36,14 @@ export function TripsScreen() {
   })).filter((g) => g.items.length > 0);
 
   const isEmpty = ready && trips.length === 0;
+  const sampleTrips = trips.filter(isSampleTrip);
+  const hasSamples = ready && sampleTrips.length > 0;
+
+  // "Start fresh" only clears the demo trips — anything the couple added stays.
+  const clearSamples = async () => {
+    setConfirmFresh(false);
+    await Promise.all(sampleTrips.map((t) => deleteTrip(t.id)));
+  };
 
   return (
     <div className="space-y-10">
@@ -53,6 +63,24 @@ export function TripsScreen() {
           New trip
         </Button>
       </header>
+
+      {hasSamples && (
+        <div className="flex flex-col gap-3 rounded-card border border-line bg-surface-2/50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-ink-soft text-balance">
+            These are example trips, here for you to explore. Clear them whenever
+            you&apos;re ready to make Meridian your own.
+          </p>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setConfirmFresh(true)}
+            className="shrink-0 self-start sm:self-auto"
+          >
+            Start fresh
+          </Button>
+        </div>
+      )}
 
       {isEmpty ? (
         <EmptyState
@@ -100,6 +128,32 @@ export function TripsScreen() {
           onSubmit={createTrip}
           onDone={() => setCreating(false)}
         />
+      </Sheet>
+
+      <Sheet
+        open={confirmFresh}
+        onClose={() => setConfirmFresh(false)}
+        title="Start fresh?"
+      >
+        <p className="text-ink-soft text-balance">
+          The {sampleTrips.length} example{" "}
+          {sampleTrips.length === 1 ? "trip" : "trips"} will be cleared so you
+          can begin with a blank slate. Anything you&apos;ve added yourself
+          stays.
+        </p>
+        <div className="mt-6 flex items-center gap-3">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => setConfirmFresh(false)}
+            className="flex-1"
+          >
+            Keep them
+          </Button>
+          <Button type="button" onClick={clearSamples} className="flex-1">
+            Clear examples
+          </Button>
+        </div>
       </Sheet>
     </div>
   );
