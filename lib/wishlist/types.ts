@@ -1,7 +1,16 @@
 import type { MemberSlot } from "@/lib/space/types";
 
 /**
- * A shared "someday" — a place or idea the couple wants to do together one day.
+ * Two flavors of someday share one board: a `place` (a trip you're dreaming of,
+ * which can graduate into a real trip) and a `date` idea (something to do
+ * together — big or small — that just lives as a shared, hearted list). The
+ * board renders them as two sections; the column defaults to `place` so every
+ * existing row keeps its meaning.
+ */
+export type WishlistKind = "place" | "date";
+
+/**
+ * A shared "someday" — a place or a date idea the couple wants to do together.
  * Mirrors the `wishlist_items` row (lib/supabase/types): two enthusiasm counts,
  * one per partner (`votes_a`/`votes_b`), and `promoted_to_trip_id` linking the
  * dream to the real trip it became — so the someday board and the trips list
@@ -10,6 +19,7 @@ import type { MemberSlot } from "@/lib/space/types";
  */
 export interface WishlistItem {
   id: string;
+  kind: WishlistKind;
   title: string;
   place: string | null;
   note: string | null;
@@ -23,6 +33,7 @@ export interface WishlistItem {
 
 export interface WishlistDraft {
   title: string;
+  kind?: WishlistKind;
   place?: string | null;
   note?: string | null;
   added_by?: MemberSlot | null;

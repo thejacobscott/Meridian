@@ -217,6 +217,7 @@ export type Database = {
         Row: {
           id: string;
           space_id: string;
+          kind: string;
           title: string;
           place: string | null;
           note: string | null;
@@ -229,6 +230,7 @@ export type Database = {
         Insert: {
           id?: string;
           space_id: string;
+          kind?: string;
           title: string;
           place?: string | null;
           note?: string | null;
@@ -238,6 +240,7 @@ export type Database = {
           promoted_to_trip_id?: string | null;
         };
         Update: Partial<{
+          kind: string;
           title: string;
           place: string | null;
           note: string | null;

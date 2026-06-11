@@ -30,14 +30,17 @@ import {
   sortWishlist,
   wants,
   type WishlistItem,
+  type WishlistKind,
 } from "@/lib/wishlist/types";
 import { WishlistItemForm } from "./wishlist-item-form";
 
 /**
- * The shared someday board: the "between trips" heart of the app. Every dream is
- * a card the two of you heart independently (one tap each); the ones you both
- * want rise to the top, and any of them can graduate into a real trip — which
- * keeps the dream→plan thread unbroken via `promoted_to_trip_id`.
+ * The shared someday board: the "between trips" heart of the app. It holds two
+ * kinds of dream — places you want to go (which can graduate into a real trip)
+ * and date ideas you want to try — each in its own section. Every one is a card
+ * the two of you heart independently (one tap each); the ones you both want rise
+ * to the top. Promoting a place keeps the dream→plan thread unbroken via
+ * `promoted_to_trip_id`.
  */
 export function WishlistBoard() {
   const {
@@ -53,11 +56,12 @@ export function WishlistBoard() {
   const { createTrip } = useTrips();
   const router = useRouter();
 
-  const [adding, setAdding] = React.useState(false);
+  const [adding, setAdding] = React.useState<WishlistKind | null>(null);
   const [editing, setEditing] = React.useState<WishlistItem | null>(null);
   const [promoting, setPromoting] = React.useState<string | null>(null);
 
-  const sorted = sortWishlist(items);
+  const places = sortWishlist(items.filter((it) => it.kind !== "date"));
+  const dates = sortWishlist(items.filter((it) => it.kind === "date"));
   const isEmpty = ready && items.length === 0;
 
   async function promote(item: WishlistItem) {
@@ -79,15 +83,15 @@ export function WishlistBoard() {
   }
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-12">
       <header className="flex items-end justify-between gap-4 pt-2">
         <div>
           <p className="eyebrow">Someday</p>
           <h1 className="mt-1 text-[2rem] leading-tight tracking-[-0.02em]">
-            The places you&rsquo;re dreaming of
+            Everything you&rsquo;re dreaming of
           </h1>
         </div>
-        <Button type="button" onClick={() => setAdding(true)} className="shrink-0">
+        <Button type="button" onClick={() => setAdding("place")} className="shrink-0">
           <Plus size={18} strokeWidth={1.75} />
           Add
         </Button>
@@ -97,46 +101,55 @@ export function WishlistBoard() {
         <EmptyState
           icon={<Sparkles size={24} strokeWidth={1.5} />}
           title="Nothing on the list yet"
-          body="Add a city, a hotel, a tiny restaurant — anything you both want to do together one day. Heart your favorites, then turn a winner into a real trip."
+          body="Add a place you both want to go, or a date idea to try together one day. Heart your favorites, then turn a place into a real trip."
           action={
-            <Button type="button" onClick={() => setAdding(true)}>
+            <Button type="button" onClick={() => setAdding("place")}>
               <Plus size={18} strokeWidth={1.75} />
               Add your first someday
             </Button>
           }
         />
       ) : (
-        <motion.div
-          variants={staggerContainer}
-          initial="initial"
-          animate="animate"
-          className="space-y-4"
-        >
-          <AnimatePresence initial={false}>
-            {sorted.map((item) => (
-              <WishItemCard
-                key={item.id}
-                item={item}
-                you={you}
-                partner={partner}
-                busy={promoting === item.id}
-                onToggle={(slot) => toggleVote(item.id, slot)}
-                onEdit={() => setEditing(item)}
-                onPromote={() => promote(item)}
-              />
-            ))}
-          </AnimatePresence>
-        </motion.div>
+        <>
+          <BoardSection
+            title="Places to go"
+            empty="No places yet — add somewhere you both dream of."
+            items={places}
+            you={you}
+            partner={partner}
+            promoting={promoting}
+            onToggle={toggleVote}
+            onEdit={setEditing}
+            onPromote={promote}
+          />
+          <BoardSection
+            title="Date ideas to try"
+            empty="No date ideas yet — add something you both want to do."
+            items={dates}
+            you={you}
+            partner={partner}
+            promoting={promoting}
+            onToggle={toggleVote}
+            onEdit={setEditing}
+            onPromote={promote}
+            onAdd={() => setAdding("date")}
+          />
+        </>
       )}
 
       {/* Add */}
-      <Sheet open={adding} onClose={() => setAdding(false)} title="Add a someday">
+      <Sheet
+        open={adding !== null}
+        onClose={() => setAdding(null)}
+        title={adding === "date" ? "Add a date idea" : "Add a someday"}
+      >
         <WishlistItemForm
-          key="new"
+          key={`new-${adding ?? "place"}`}
+          defaultKind={adding ?? "place"}
           onSubmit={async (draft) => {
             await addItem({ ...draft, added_by: you.slot });
           }}
-          onDone={() => setAdding(false)}
+          onDone={() => setAdding(null)}
         />
       </Sheet>
 
@@ -160,6 +173,74 @@ export function WishlistBoard() {
         )}
       </Sheet>
     </div>
+  );
+}
+
+function BoardSection({
+  title,
+  empty,
+  items,
+  you,
+  partner,
+  promoting,
+  onToggle,
+  onEdit,
+  onPromote,
+  onAdd,
+}: {
+  title: string;
+  empty: string;
+  items: WishlistItem[];
+  you: SpaceMember;
+  partner: SpaceMember;
+  promoting: string | null;
+  onToggle: (id: string, slot: "a" | "b") => void;
+  onEdit: (item: WishlistItem) => void;
+  onPromote: (item: WishlistItem) => void;
+  onAdd?: () => void;
+}) {
+  return (
+    <section className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="font-display text-[1.4rem] leading-tight tracking-[-0.01em]">
+          {title}
+        </h2>
+        {onAdd && (
+          <Button type="button" variant="ghost" size="sm" onClick={onAdd} className="shrink-0">
+            <Plus size={16} strokeWidth={1.75} />
+            Add
+          </Button>
+        )}
+      </div>
+
+      {items.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-line px-5 py-8 text-center">
+          <p className="text-pretty text-sm text-ink-soft">{empty}</p>
+        </div>
+      ) : (
+        <motion.div
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+          className="space-y-4"
+        >
+          <AnimatePresence initial={false}>
+            {items.map((item) => (
+              <WishItemCard
+                key={item.id}
+                item={item}
+                you={you}
+                partner={partner}
+                busy={promoting === item.id}
+                onToggle={(slot) => onToggle(item.id, slot)}
+                onEdit={() => onEdit(item)}
+                onPromote={() => onPromote(item)}
+              />
+            ))}
+          </AnimatePresence>
+        </motion.div>
+      )}
+    </section>
   );
 }
 
@@ -195,18 +276,20 @@ function WishItemCard({
   onEdit: () => void;
   onPromote: () => void;
 }) {
+  const isDate = item.kind === "date";
   const promoted = isPromoted(item);
   const both = bothWant(item);
   const adder =
     item.added_by === "a" ? you : item.added_by === "b" ? partner : null;
-  // "Your someday" reads naturally for your own (whatever your name is);
-  // the partner's gets their first name.
+  // "Your date idea" / "Your someday" reads naturally for your own (whatever
+  // your name is); the partner's gets their first name.
+  const noun = isDate ? "date idea" : "someday";
   const adderLabel =
     item.added_by === "a"
-      ? "Your someday"
+      ? `Your ${noun}`
       : item.added_by === "b"
-        ? `${firstName(partner.name)}'s someday`
-        : "A shared someday";
+        ? `${firstName(partner.name)}'s ${noun}`
+        : `A shared ${noun}`;
 
   return (
     <motion.div variants={fadeUp} layout exit={{ opacity: 0, y: -8 }}>
@@ -237,7 +320,7 @@ function WishItemCard({
           </button>
         </div>
 
-        <h2 className="mt-3 text-lg leading-snug">{item.title}</h2>
+        <h3 className="mt-3 text-lg leading-snug">{item.title}</h3>
         {item.place && (
           <p className="mt-1 flex items-center gap-1.5 text-sm text-ink-soft">
             <MapPin size={14} strokeWidth={1.75} className="shrink-0" />
@@ -255,7 +338,22 @@ function WishItemCard({
           </p>
         )}
 
-        {promoted ? (
+        {isDate ? (
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <HeartToggle
+              name={firstName(you.name)}
+              on={wants(item, "a")}
+              slot="a"
+              onClick={() => onToggle("a")}
+            />
+            <HeartToggle
+              name={firstName(partner.name)}
+              on={wants(item, "b")}
+              slot="b"
+              onClick={() => onToggle("b")}
+            />
+          </div>
+        ) : promoted ? (
           <Link
             href={`/trips/${item.promoted_to_trip_id}`}
             className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-ink-soft transition-colors hover:text-ink"

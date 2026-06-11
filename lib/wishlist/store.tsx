@@ -7,7 +7,12 @@ import type { Tables } from "@/lib/supabase/types";
 import { useSpace } from "@/lib/space/store";
 import type { MemberSlot } from "@/lib/space/types";
 import { SAMPLE_WISHLIST } from "./sample";
-import type { WishlistDraft, WishlistItem } from "./types";
+import type { WishlistDraft, WishlistItem, WishlistKind } from "./types";
+
+/** Normalize a stored/remote kind to the two we know, defaulting to place. */
+function asKind(v: unknown): WishlistKind {
+  return v === "date" ? "date" : "place";
+}
 
 interface WishlistContextValue {
   /** False until the client store has hydrated from storage. */
@@ -53,7 +58,9 @@ function loadFromStorage(): WishlistItem[] | null {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as WishlistItem[]) : null;
+    if (!Array.isArray(parsed)) return null;
+    // Backfill `kind` for boards saved before date ideas existed.
+    return (parsed as WishlistItem[]).map((it) => ({ ...it, kind: asKind(it.kind) }));
   } catch {
     return null;
   }
@@ -89,9 +96,11 @@ function PreviewWishlistProvider({ children }: { children: React.ReactNode }) {
       addItem: async (draft) => {
         const now = new Date().toISOString();
         const by = draft.added_by ?? "a";
+        const kind = draft.kind ?? "place";
         const item: WishlistItem = {
           id: newId(),
-          title: draft.title.trim() || "A someday",
+          kind,
+          title: draft.title.trim() || (kind === "date" ? "A date idea" : "A someday"),
           place: cleanStr(draft.place),
           note: cleanStr(draft.note),
           added_by: by,
@@ -112,6 +121,7 @@ function PreviewWishlistProvider({ children }: { children: React.ReactNode }) {
             it.id === id
               ? {
                   ...it,
+                  kind: patch.kind ?? it.kind,
                   title: patch.title?.trim() || it.title,
                   place:
                     patch.place !== undefined ? cleanStr(patch.place) : it.place,
@@ -205,6 +215,7 @@ function rowToItem(
 ): WishlistItem {
   return {
     id: r.id,
+    kind: asKind(r.kind),
     title: r.title,
     place: r.place,
     note: r.note,
@@ -288,9 +299,11 @@ function SupabaseWishlistProvider({
         const { slotByUserId } = await loadSlotMap(spaceId);
         const mySlot = slotByUserId.get(userId) ?? "a";
         const now = new Date().toISOString();
+        const kind = draft.kind ?? "place";
         const item: WishlistItem = {
           id: newId(),
-          title: draft.title.trim() || "A someday",
+          kind,
+          title: draft.title.trim() || (kind === "date" ? "A date idea" : "A someday"),
           place: cleanStr(draft.place),
           note: cleanStr(draft.note),
           // The adder is always the signed-in user, so attribute by their slot.
@@ -305,6 +318,7 @@ function SupabaseWishlistProvider({
         const { error } = await supabase.from("wishlist_items").insert({
           id: item.id,
           space_id: spaceId,
+          kind: item.kind,
           title: item.title,
           place: item.place,
           note: item.note,
@@ -324,13 +338,20 @@ function SupabaseWishlistProvider({
         if (!current) return;
         const next: WishlistItem = {
           ...current,
+          kind: patch.kind ?? current.kind,
           title: patch.title?.trim() || current.title,
           place: patch.place !== undefined ? cleanStr(patch.place) : current.place,
           note: patch.note !== undefined ? cleanStr(patch.note) : current.note,
           updated_at: new Date().toISOString(),
         };
         setItems((prev) => prev.map((it) => (it.id === id ? next : it)));
-        const upd: { title?: string; place?: string | null; note?: string | null } = {};
+        const upd: {
+          kind?: string;
+          title?: string;
+          place?: string | null;
+          note?: string | null;
+        } = {};
+        if (patch.kind !== undefined) upd.kind = next.kind;
         if (patch.title !== undefined) upd.title = next.title;
         if (patch.place !== undefined) upd.place = next.place;
         if (patch.note !== undefined) upd.note = next.note;

@@ -3,11 +3,13 @@ import type { WishlistItem } from "./types";
 /**
  * Sample someday list for preview mode (no Supabase keys). A mix of vote states
  * so the board shows every shade out of the box: a couple both dream of, one
- * each is keen on, and one nobody's hearted yet. Replaced once a space connects.
+ * each is keen on, and one nobody's hearted yet — plus a few `date` ideas so the
+ * second section isn't empty on first look. Replaced once a space connects.
  */
 export const SAMPLE_WISHLIST: WishlistItem[] = [
   {
     id: "wish-kyoto-blossom",
+    kind: "place",
     title: "Cherry blossoms in Kyoto",
     place: "Japan · early April",
     note: "Time it for the exact week the trees turn.",
@@ -20,6 +22,7 @@ export const SAMPLE_WISHLIST: WishlistItem[] = [
   },
   {
     id: "wish-slow-week",
+    kind: "place",
     title: "A week with nothing planned",
     place: "somewhere off-season",
     note: "Just us and slow mornings.",
@@ -32,6 +35,7 @@ export const SAMPLE_WISHLIST: WishlistItem[] = [
   },
   {
     id: "wish-rome-pasta",
+    kind: "place",
     title: "That tiny pasta place again",
     place: "Trastevere, Rome",
     note: "The one down the steps with the artichokes.",
@@ -44,6 +48,7 @@ export const SAMPLE_WISHLIST: WishlistItem[] = [
   },
   {
     id: "wish-aurora",
+    kind: "place",
     title: "See the northern lights",
     place: "Tromsø, Norway",
     note: null,
@@ -56,6 +61,7 @@ export const SAMPLE_WISHLIST: WishlistItem[] = [
   },
   {
     id: "wish-pch",
+    kind: "place",
     title: "Drive the Pacific Coast Highway",
     place: "California",
     note: "Top down, no schedule.",
@@ -68,6 +74,7 @@ export const SAMPLE_WISHLIST: WishlistItem[] = [
   },
   {
     id: "wish-alps-train",
+    kind: "place",
     title: "Take the train through the Alps",
     place: "Switzerland",
     note: null,
@@ -77,5 +84,31 @@ export const SAMPLE_WISHLIST: WishlistItem[] = [
     promoted_to_trip_id: null,
     created_at: "2026-04-20T09:00:00.000Z",
     updated_at: "2026-04-20T09:00:00.000Z",
+  },
+  {
+    id: "wish-date-pasta",
+    kind: "date",
+    title: "Cook the pasta from scratch",
+    place: null,
+    note: "Flour everywhere, a good bottle open.",
+    added_by: "a",
+    votes_a: 1,
+    votes_b: 1,
+    promoted_to_trip_id: null,
+    created_at: "2026-05-04T09:00:00.000Z",
+    updated_at: "2026-05-04T09:00:00.000Z",
+  },
+  {
+    id: "wish-date-stars",
+    kind: "date",
+    title: "Drive out where the stars are",
+    place: "somewhere with no streetlights",
+    note: "Blanket in the trunk, no phones.",
+    added_by: "b",
+    votes_a: 0,
+    votes_b: 1,
+    promoted_to_trip_id: null,
+    created_at: "2026-05-12T09:00:00.000Z",
+    updated_at: "2026-05-12T09:00:00.000Z",
   },
 ];
