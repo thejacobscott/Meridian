@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // The preview-mode sandbox's build dir (NEXT_DIST_DIR), so `npm run lint`
+    // stays clean whenever the sample-data server has been run.
+    ".next-preview/**",
   ]),
 ]);
 
