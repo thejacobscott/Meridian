@@ -250,6 +250,29 @@ export type Database = {
         }>;
         Relationships: [];
       };
+      hub_notes: {
+        Row: {
+          id: string;
+          space_id: string;
+          author: string | null;
+          kind: string;
+          body: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          space_id: string;
+          author?: string | null;
+          kind?: string;
+          body?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<{
+          kind: string;
+          body: string | null;
+        }>;
+        Relationships: [];
+      };
       packing_items: {
         Row: {
           id: string;

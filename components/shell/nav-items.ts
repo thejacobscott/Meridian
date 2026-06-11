@@ -1,4 +1,4 @@
-import { Home, Map, Sparkles, User, type LucideIcon } from "lucide-react";
+import { Home, Map, MessageCircle, Sparkles, User, type LucideIcon } from "lucide-react";
 
 export interface NavItem {
   href: string;
@@ -20,6 +20,12 @@ export const navItems: NavItem[] = [
     label: "Someday",
     icon: Sparkles,
     match: (p) => p.startsWith("/wishlist"),
+  },
+  {
+    href: "/hub",
+    label: "Notes",
+    icon: MessageCircle,
+    match: (p) => p.startsWith("/hub"),
   },
   {
     href: "/profile",

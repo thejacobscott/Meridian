@@ -8,6 +8,7 @@ import { SpaceProvider, type SpaceSnapshot, type SpaceMemberRow } from "@/lib/sp
 import { PresenceProvider } from "@/lib/presence/store";
 import { WishlistProvider } from "@/lib/wishlist/store";
 import { PackingProvider } from "@/lib/packing/store";
+import { HubProvider } from "@/lib/hub/store";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -78,7 +79,9 @@ export default async function AppLayout({
             <MemoryProvider>
               <WishlistProvider>
                 <PackingProvider>
-                  <AppShell>{children}</AppShell>
+                  <HubProvider>
+                    <AppShell>{children}</AppShell>
+                  </HubProvider>
                 </PackingProvider>
               </WishlistProvider>
             </MemoryProvider>
