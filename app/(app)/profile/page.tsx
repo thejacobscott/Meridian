@@ -1,21 +1,14 @@
-import { Clock, LogOut, Palette } from "lucide-react";
-import { Avatar } from "@/components/ui/avatar";
+import { LogOut, Palette } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Hairline } from "@/components/ui/hairline";
 import { buttonVariants } from "@/components/ui/button";
 import { InviteCode } from "@/components/space/invite-code";
+import { ConnectedSpace } from "@/components/space/connected-space";
 import { SpaceEditor } from "@/components/space/space-editor";
-import { YourAwakeHours } from "@/components/space/your-awake-hours";
+import { HubSwitcher } from "@/components/space/hub-switcher";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/auth/actions";
-
-/** Turn "America/New_York" into "New York" for a softer read. */
-function prettyTz(tz: string | null) {
-  if (!tz) return "—";
-  const tail = tz.split("/").pop() ?? tz;
-  return tail.replace(/_/g, " ");
-}
 
 export default async function ProfilePage() {
   if (isSupabaseConfigured) {
@@ -24,12 +17,6 @@ export default async function ProfilePage() {
   }
   return <PreviewProfile />;
 }
-
-type Member = {
-  user_id: string;
-  display_name: string | null;
-  home_city: string | null;
-};
 
 async function loadSpace() {
   const supabase = await createClient();
@@ -48,66 +35,35 @@ async function loadSpace() {
   const [{ data: space }, { data: members }] = await Promise.all([
     supabase
       .from("spaces")
-      .select("name, invite_code, home_tz_a, home_tz_b")
+      .select("name, invite_code")
       .eq("id", membership.space_id)
       .single(),
     supabase
       .from("members")
-      .select("user_id, display_name, home_city")
-      .eq("space_id", membership.space_id)
-      .order("created_at", { ascending: true }),
+      .select("user_id")
+      .eq("space_id", membership.space_id),
   ]);
 
   if (!space) return null;
-  return { space, members: (members ?? []) as Member[], userId: user.id };
+  return { space, memberCount: (members ?? []).length };
 }
 
 function ConnectedProfile({
   space,
-  members,
-  userId,
+  memberCount,
 }: NonNullable<Awaited<ReturnType<typeof loadSpace>>>) {
-  const tzByIndex = [space.home_tz_a, space.home_tz_b];
-  const awaitingPartner = members.length < 2;
+  const awaitingPartner = memberCount < 2;
 
   return (
     <div className="space-y-8">
       <header className="pt-2">
-        <p className="eyebrow">{space.name}</p>
+        <p className="eyebrow">Settings</p>
         <h1 className="mt-1 text-[2rem] leading-tight tracking-[-0.02em]">
           You &amp; your person
         </h1>
       </header>
 
-      <Card className="divide-y divide-line">
-        {members.map((m, i) => {
-          const isYou = m.user_id === userId;
-          return (
-            <div key={m.user_id} className="flex items-center gap-4 px-5 py-4">
-              <Avatar name={m.display_name} size={48} />
-              <div className="min-w-0 flex-1">
-                <p className="font-medium text-ink">
-                  {m.display_name ?? "Someone"}
-                  {isYou && (
-                    <span className="ml-2 text-xs font-normal text-ink-soft">
-                      you
-                    </span>
-                  )}
-                </p>
-                <p className="truncate text-sm text-ink-soft">
-                  {m.home_city ?? "No home city yet"}
-                </p>
-              </div>
-              <div className="flex items-center gap-1.5 text-sm tabular-nums text-ink-soft">
-                <Clock size={15} strokeWidth={1.6} />
-                {prettyTz(tzByIndex[i])}
-              </div>
-            </div>
-          );
-        })}
-      </Card>
-
-      <YourAwakeHours />
+      <ConnectedSpace hasPartner={!awaitingPartner} />
 
       {awaitingPartner && (
         <Card className="px-5 py-5">
@@ -121,22 +77,7 @@ function ConnectedProfile({
         </Card>
       )}
 
-      <Card className="px-5 py-4">
-        <div className="flex items-center gap-4">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-2 text-ink-soft">
-            <Palette size={18} strokeWidth={1.6} />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="font-medium text-ink">Shared color</p>
-            <p className="text-sm text-ink-soft">Warm clay — your default theme</p>
-          </div>
-          <span
-            className="h-7 w-7 rounded-full ring-1 ring-line"
-            style={{ backgroundColor: "var(--accent)" }}
-            aria-hidden="true"
-          />
-        </div>
-      </Card>
+      <SharedColorCard />
 
       <Hairline />
 
@@ -169,22 +110,9 @@ function PreviewProfile() {
 
       <SpaceEditor />
 
-      <Card className="px-5 py-4">
-        <div className="flex items-center gap-4">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-2 text-ink-soft">
-            <Palette size={18} strokeWidth={1.6} />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="font-medium text-ink">Shared color</p>
-            <p className="text-sm text-ink-soft">Warm clay — your default theme</p>
-          </div>
-          <span
-            className="h-7 w-7 rounded-full ring-1 ring-line"
-            style={{ backgroundColor: "var(--accent)" }}
-            aria-hidden="true"
-          />
-        </div>
-      </Card>
+      <HubSwitcher />
+
+      <SharedColorCard />
 
       <Hairline />
 
@@ -194,5 +122,26 @@ function PreviewProfile() {
         space is connected.
       </p>
     </div>
+  );
+}
+
+function SharedColorCard() {
+  return (
+    <Card className="px-5 py-4">
+      <div className="flex items-center gap-4">
+        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-2 text-ink-soft">
+          <Palette size={18} strokeWidth={1.6} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="font-medium text-ink">Shared color</p>
+          <p className="text-sm text-ink-soft">Warm clay — your default theme</p>
+        </div>
+        <span
+          className="h-7 w-7 rounded-full ring-1 ring-line"
+          style={{ backgroundColor: "var(--accent)" }}
+          aria-hidden="true"
+        />
+      </div>
+    </Card>
   );
 }

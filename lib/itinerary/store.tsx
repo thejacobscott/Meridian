@@ -6,6 +6,7 @@ import { getBrowserClient } from "@/lib/supabase/client";
 import { ensureDay } from "@/lib/supabase/days";
 import type { Database, Tables } from "@/lib/supabase/types";
 import { useSpace } from "@/lib/space/store";
+import { previewKey } from "@/lib/preview/hubs";
 import { DEFAULT_CATEGORIES } from "./categories";
 import { SAMPLE_EVENTS } from "./sample";
 import {
@@ -59,7 +60,7 @@ const STORAGE_KEY = "meridian.events.v1";
 
 function loadFromStorage(): ItineraryEvent[] | null {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(previewKey(STORAGE_KEY));
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? (parsed as ItineraryEvent[]) : null;
@@ -117,7 +118,7 @@ function PreviewEventsProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     if (!ready) return;
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+      window.localStorage.setItem(previewKey(STORAGE_KEY), JSON.stringify(events));
     } catch {
       // storage full / unavailable — preview persistence is best-effort
     }

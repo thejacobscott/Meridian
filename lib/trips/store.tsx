@@ -6,6 +6,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getBrowserClient } from "@/lib/supabase/client";
 import type { Tables } from "@/lib/supabase/types";
 import { useSpace } from "@/lib/space/store";
+import { previewKey } from "@/lib/preview/hubs";
 import { DEFAULT_ACCENT } from "./accents";
 import { SAMPLE_TRIPS } from "./sample";
 import { deriveStatus, type Trip, type TripDraft, type TripStatus } from "./types";
@@ -58,7 +59,7 @@ const STORAGE_KEY = "meridian.trips.v1";
 
 function loadFromStorage(): Trip[] | null {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(previewKey(STORAGE_KEY));
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? (parsed as Trip[]) : null;
@@ -94,7 +95,7 @@ function PreviewTripsProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     if (!ready) return;
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(trips));
+      window.localStorage.setItem(previewKey(STORAGE_KEY), JSON.stringify(trips));
     } catch {
       // storage full / unavailable — preview persistence is best-effort
     }

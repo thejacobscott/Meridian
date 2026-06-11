@@ -5,6 +5,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getBrowserClient } from "@/lib/supabase/client";
 import type { Tables } from "@/lib/supabase/types";
 import { useSpace } from "@/lib/space/store";
+import { previewKey } from "@/lib/preview/hubs";
 import type { MemberSlot } from "@/lib/space/types";
 import { SAMPLE_WISHLIST } from "./sample";
 import type { WishlistDraft, WishlistItem, WishlistKind } from "./types";
@@ -55,7 +56,7 @@ const STORAGE_KEY = "meridian.wishlist.v1";
 
 function loadFromStorage(): WishlistItem[] | null {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(previewKey(STORAGE_KEY));
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return null;
@@ -82,7 +83,7 @@ function PreviewWishlistProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     if (!ready) return;
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      window.localStorage.setItem(previewKey(STORAGE_KEY), JSON.stringify(items));
     } catch {
       // best-effort
     }

@@ -13,6 +13,7 @@ import {
   type SpaceMember,
   type SpaceState,
 } from "./types";
+import { previewKey } from "@/lib/preview/hubs";
 
 interface SpaceContextValue {
   /** False until the client store has hydrated from storage. */
@@ -47,7 +48,7 @@ const STORAGE_KEY = "meridian.space.v1";
 
 function loadFromStorage(): SpaceState | null {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(previewKey(STORAGE_KEY));
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (
@@ -91,7 +92,7 @@ function PreviewSpaceProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     if (!ready) return;
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(space));
+      window.localStorage.setItem(previewKey(STORAGE_KEY), JSON.stringify(space));
     } catch {
       // best-effort
     }

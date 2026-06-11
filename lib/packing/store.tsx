@@ -5,6 +5,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getBrowserClient } from "@/lib/supabase/client";
 import type { Tables } from "@/lib/supabase/types";
 import { useSpace } from "@/lib/space/store";
+import { previewKey } from "@/lib/preview/hubs";
 import { SAMPLE_PACKING } from "./sample";
 import {
   sortPacking,
@@ -63,7 +64,7 @@ const STORAGE_KEY = "meridian.packing.v1";
 
 function loadFromStorage(): PackingItem[] | null {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(previewKey(STORAGE_KEY));
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? (parsed as PackingItem[]) : null;
@@ -88,7 +89,7 @@ function PreviewPackingProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     if (!ready) return;
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      window.localStorage.setItem(previewKey(STORAGE_KEY), JSON.stringify(items));
     } catch {
       // best-effort
     }

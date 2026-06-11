@@ -6,6 +6,7 @@ import { getBrowserClient } from "@/lib/supabase/client";
 import { ensureDay } from "@/lib/supabase/days";
 import type { Tables } from "@/lib/supabase/types";
 import { useSpace } from "@/lib/space/store";
+import { previewKey } from "@/lib/preview/hubs";
 import { compressImage } from "./compress";
 import { idbAllPhotos, idbDeletePhoto, idbPutPhoto } from "./idb";
 import { SAMPLE_DAY_MEMORIES } from "./sample";
@@ -63,7 +64,7 @@ const DAYS_KEY = "meridian.memory.days.v1";
 
 function loadDays(): DayMemory[] | null {
   try {
-    const raw = window.localStorage.getItem(DAYS_KEY);
+    const raw = window.localStorage.getItem(previewKey(DAYS_KEY));
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? (parsed as DayMemory[]) : null;
@@ -179,7 +180,7 @@ function PreviewMemoryProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     if (!ready) return;
     try {
-      window.localStorage.setItem(DAYS_KEY, JSON.stringify(days));
+      window.localStorage.setItem(previewKey(DAYS_KEY), JSON.stringify(days));
     } catch {
       // best-effort
     }

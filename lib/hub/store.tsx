@@ -5,6 +5,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getBrowserClient } from "@/lib/supabase/client";
 import type { Tables } from "@/lib/supabase/types";
 import { useSpace } from "@/lib/space/store";
+import { previewKey } from "@/lib/preview/hubs";
 import type { MemberSlot } from "@/lib/space/types";
 import { SAMPLE_HUB } from "./sample";
 import type { HubDraft, HubKind, HubNote } from "./types";
@@ -53,7 +54,7 @@ const WELCOME_NOTE_KEY = "meridian.welcome.note.v1";
 
 function loadFromStorage(): HubNote[] | null {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(previewKey(STORAGE_KEY));
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return null;
@@ -95,7 +96,7 @@ function PreviewHubProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     if (!ready) return;
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+      window.localStorage.setItem(previewKey(STORAGE_KEY), JSON.stringify(notes));
     } catch {
       // best-effort
     }
